@@ -338,42 +338,12 @@ function App() {
             </div>
           </div>
 
-          <div
-            className="hero-art"
-            aria-label="Abstract music-inspired artwork"
-          >
-            <div className="art-label art-label-top">
-              <span className="art-label-dot" />
-              SOUND IN MOTION
-            </div>
-
-            <div className="orbit orbit-one" />
-            <div className="orbit orbit-two" />
-
-            <div className="art-disc">
-              <div className="disc-ring disc-ring-one" />
-              <div className="disc-ring disc-ring-two" />
-              <div className="disc-core">p<span>.</span></div>
-            </div>
-
-            <div className="art-wave">
-              {Array.from({ length: 31 }, (_, i) => (
-                <span
-                  key={i}
-                  style={{
-                    height: `${18 + Math.abs(Math.sin(i * 0.62)) * 83}px`,
-                  }}
-                />
-              ))}
-            </div>
-
-            <div className="floating-note note-one">♫</div>
-            <div className="floating-note note-two">♪</div>
-
-            <div className="art-label art-label-bottom">
-              <span>01 / CREATE SOMETHING NEW</span>
-              <span>✳</span>
-            </div>
+          <div className="hero-art">
+            <img
+              className="hero-art-image"
+              src={`${import.meta.env.BASE_URL}header-art.jpg`}
+              alt="Produla music artwork"
+            />
           </div>
         </section>
 
