@@ -1501,12 +1501,12 @@ h2 {
   }
 }
 
-/* Use the custom image for the hero artwork */
+/* Show the custom hero artwork as a complete image, not inside the old arch */
 .hero-art {
-  height: 410px;
+  height: auto;
   min-height: 0;
-  overflow: hidden !important;
-  border-radius: 48% 48% 8px 8px;
+  overflow: visible !important;
+  border-radius: 12px;
 }
 
 .hero-art::before {
@@ -1514,11 +1514,11 @@ h2 {
 }
 
 .hero-art-image {
-  position: absolute;
-  inset: 0;
+  position: static;
   display: block;
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  height: auto;
+  object-fit: contain;
   object-position: center;
+  border-radius: 12px;
 }
