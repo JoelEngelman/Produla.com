@@ -56,7 +56,7 @@ function App() {
     clearProfileFields();
 
     try {
-      const response = await fetch("/api/profile", {
+      const response = await fetch("https://produla-auth.joeldavidengelman.workers.dev/api/profile", {
         method: "GET",
         credentials: "include",
       });
@@ -110,7 +110,7 @@ function App() {
           .filter(Boolean)
           .slice(0, 10);
 
-        const response = await fetch("/api/profile", {
+        const response = await fetch("https://produla-auth.joeldavidengelman.workers.dev/api/profile", {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
