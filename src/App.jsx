@@ -197,7 +197,7 @@ function App() {
           ? await supabase.auth.signUp({
               email: authEmail.trim(),
               password: authPassword,
-              options: { data: { name: authName.trim() } },
+              options: { data: { name: authName.trim() }, emailRedirectTo: window.location.origin },
             })
           : await supabase.auth.signInWithPassword({
               email: authEmail.trim(),
