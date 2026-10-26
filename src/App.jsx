@@ -5,6 +5,28 @@ import "./App.css";
 
 function App() {
   const [notice, setNotice] = useState("");
+  const [publicProfiles, setPublicProfiles] = useState([]);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadPublicProfiles() {
+      const { data, error } = await supabase
+        .from("artist_profiles")
+        .select("id, username, display_name, artist_type, bio, genres, spotify_url, apple_music_url, soundcloud_url, youtube_url, instagram_url, tiktok_url")
+        .order("created_at", { ascending: false })
+        .limit(24);
+
+      if (error) {
+        console.error("Could not load artist profiles:", error.message);
+        return;
+      }
+      if (active) setPublicProfiles(data || []);
+    }
+
+    loadPublicProfiles();
+    return () => { active = false; };
+  }, []);
 
   const [session, setSession] = useState(null);
   const [sessionPending, setSessionPending] = useState(true);
@@ -142,7 +164,7 @@ function App() {
           .from("artist_profiles")
           .upsert({
             id: session.user.id,
-            username: profileUsername.trim(),
+            username: profileUsername.trim().toLowerCase(),
             display_name: profileName.trim(),
             artist_type: profileType,
             bio: profileBio.trim(),
@@ -410,22 +432,80 @@ function App() {
             </div>
           </div>
 
-          <div className="empty-state">
-            <div className="empty-state-icon">✳</div>
-            <h3>A community waiting to happen.</h3>
-            <p>
-              There aren't any producer profiles yet.
-              Real producers will appear here when they join Produla.
-            </p>
-            <button
-              className="button button-dark"
-              onClick={() =>
-                showNotice("Producer sign-up isn't available yet.")
-              }
-            >
-              Join as a producer <span>↗</span>
-            </button>
-          </div>
+          {publicProfiles.length === 0 ? (
+            <div className="empty-state">
+              <div className="empty-state-icon">✳</div>
+              <h3>A community waiting to happen.</h3>
+              <p>
+                There aren't any artist profiles yet.
+                Create yours and be one of the first people here.
+              </p>
+              <button
+                className="button button-dark"
+                onClick={() => {
+                  if (session?.user) openProfileEditor();
+                  else setAuthMode("signup");
+                }}
+              >
+                Create your profile <span>↗</span>
+              </button>
+            </div>
+          ) : (
+            <div className="artist-grid">
+              {publicProfiles.map((artist) => {
+                const links = [
+                  ["Spotify", artist.spotify_url],
+                  ["Apple Music", artist.apple_music_url],
+                  ["SoundCloud", artist.soundcloud_url],
+                  ["YouTube", artist.youtube_url],
+                  ["Instagram", artist.instagram_url],
+                  ["TikTok", artist.tiktok_url],
+                ].filter(([, url]) => /^https?:\/\//i.test(url || ""));
+
+                return (
+                  <article className="artist-card" key={artist.id}>
+                    <div className="artist-card-top">
+                      <span className="artist-avatar">
+                        {(artist.display_name || artist.username || "A")
+                          .trim()
+                          .split(/\s+/)
+                          .map((part) => part[0])
+                          .join("")
+                          .slice(0, 2)
+                          .toUpperCase()}
+                      </span>
+                      <span className="artist-type">
+                        {artist.artist_type === "both"
+                          ? "Singer · Producer"
+                          : artist.artist_type === "producer"
+                            ? "Producer"
+                            : "Singer"}
+                      </span>
+                    </div>
+                    <h3>{artist.display_name}</h3>
+                    <p className="artist-username">@{artist.username}</p>
+                    {artist.bio && <p className="artist-bio">{artist.bio}</p>}
+                    {artist.genres?.length > 0 && (
+                      <div className="artist-genres">
+                        {artist.genres.slice(0, 5).map((genre) => (
+                          <span key={genre}>{genre}</span>
+                        ))}
+                      </div>
+                    )}
+                    {links.length > 0 && (
+                      <div className="artist-links">
+                        {links.map(([label, url]) => (
+                          <a key={label} href={url} target="_blank" rel="noreferrer">
+                            {label} ↗
+                          </a>
+                        ))}
+                      </div>
+                    )}
+                  </article>
+                );
+              })}
+            </div>
+          )}
         </section>
 
         <section className="sample-banner" id="samples">
