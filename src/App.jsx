@@ -181,7 +181,12 @@ function App() {
           .single();
 
         if (error) throw error;
-        if (savedProfile) setProfileName(savedProfile.display_name || profileName);
+        if (savedProfile) {
+          setProfileName(savedProfile.display_name || profileName);
+          setPublicProfiles((current) =>
+            [savedProfile, ...current.filter((profile) => profile.id !== savedProfile.id)].slice(0, 24)
+          );
+        }
 
         setAuthMode("");
         setProfileMenuOpen(false);
