@@ -181,10 +181,6 @@ function App() {
           throw new Error(result.error.message || "Something went wrong.");
         }
 
-        if (wasSignup && !result.data.session) {
-          showNotice("Check your email to confirm your account.");
-        }
-
         setAuthMode("");
         setAuthEmail("");
         setAuthPassword("");
@@ -192,7 +188,9 @@ function App() {
 
         showNotice(
           wasSignup
-            ? "Account created successfully!"
+            ? result.data.session
+              ? "Account created successfully!"
+              : "Check your email to confirm your account."
             : "You're logged in!"
         );
       }
@@ -244,7 +242,7 @@ function App() {
               <button
                 className="button button-dark nav-cta"
                 onClick={async () => {
-                  const result = await authClient.signOut();
+                  const result = await supabase.auth.signOut();
 
                   if (result.error) {
                     showNotice(
@@ -275,7 +273,7 @@ function App() {
                   <button
                     onClick={async () => {
                       setProfileMenuOpen(false);
-                      const result = await authClient.signOut();
+                      const result = await supabase.auth.signOut();
 
                       if (result.error) {
                         showNotice(
