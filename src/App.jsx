@@ -1,13 +1,52 @@
 
-import { useState } from "react";
-import { authClient } from "./lib/auth-client";
+import { useEffect, useState } from "react";
+import { supabase } from "./lib/supabase";
 import "./App.css";
 
 function App() {
   const [notice, setNotice] = useState("");
 
-  const { data: session, isPending: sessionPending } =
-    authClient.useSession();
+  const [session, setSession] = useState(null);
+  const [sessionPending, setSessionPending] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+
+    function toAppSession(authSession) {
+      if (!authSession?.user) return null;
+      const user = authSession.user;
+      return {
+        user: {
+          id: user.id,
+          email: user.email || "",
+          name:
+            user.user_metadata?.name ||
+            user.user_metadata?.full_name ||
+            user.email ||
+            "Artist",
+        },
+      };
+    }
+
+    supabase.auth.getSession().then(({ data, error }) => {
+      if (!active) return;
+      if (error) console.error("Could not restore session:", error.message);
+      setSession(toAppSession(data?.session));
+      setSessionPending(false);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, authSession) => {
+        setSession(toAppSession(authSession));
+        setSessionPending(false);
+      }
+    );
+
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
+  }, []);
 
   const [profileName, setProfileName] = useState("");
   const [profileType, setProfileType] = useState("singer");
@@ -56,37 +95,26 @@ function App() {
     clearProfileFields();
 
     try {
-      const response = await fetch("https://produla-auth.joeldavidengelman.workers.dev/api/profile", {
-        method: "GET",
-        credentials: "include",
-      });
+      const { data: profile, error } = await supabase
+        .from("artist_profiles")
+        .select("*")
+        .eq("id", session.user.id)
+        .maybeSingle();
 
-      const data = await response.json();
+      if (error) throw error;
 
-      if (!response.ok) {
-        throw new Error(data.error || "Couldn't load your profile.");
-      }
-
-      if (data.profile) {
-        const profile = data.profile;
-
+      if (profile) {
         setProfileUsername(profile.username || "");
-        setProfileName(
-          profile.displayName || session?.user?.name || ""
-        );
-        setProfileType(profile.artistType || "singer");
+        setProfileName(profile.display_name || session?.user?.name || "");
+        setProfileType(profile.artist_type || "singer");
         setProfileBio(profile.bio || "");
-        setProfileGenres(
-          Array.isArray(profile.genres)
-            ? profile.genres.join(", ")
-            : ""
-        );
-        setProfileSpotify(profile.spotifyUrl || "");
-        setProfileAppleMusic(profile.appleMusicUrl || "");
-        setProfileSoundCloud(profile.soundcloudUrl || "");
-        setProfileYouTube(profile.youtubeUrl || "");
-        setProfileInstagram(profile.instagramUrl || "");
-        setProfileTikTok(profile.tiktokUrl || "");
+        setProfileGenres(Array.isArray(profile.genres) ? profile.genres.join(", ") : "");
+        setProfileSpotify(profile.spotify_url || "");
+        setProfileAppleMusic(profile.apple_music_url || "");
+        setProfileSoundCloud(profile.soundcloud_url || "");
+        setProfileYouTube(profile.youtube_url || "");
+        setProfileInstagram(profile.instagram_url || "");
+        setProfileTikTok(profile.tiktok_url || "");
       }
     } catch (error) {
       setAuthError(
@@ -110,62 +138,52 @@ function App() {
           .filter(Boolean)
           .slice(0, 10);
 
-        const response = await fetch("https://produla-auth.joeldavidengelman.workers.dev/api/profile", {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify({
-            username: profileUsername,
-            displayName: profileName,
-            artistType: profileType,
-            bio: profileBio,
+        const { data: savedProfile, error } = await supabase
+          .from("artist_profiles")
+          .upsert({
+            id: session.user.id,
+            username: profileUsername.trim(),
+            display_name: profileName.trim(),
+            artist_type: profileType,
+            bio: profileBio.trim(),
             genres,
-            spotifyUrl: profileSpotify,
-            appleMusicUrl: profileAppleMusic,
-            soundcloudUrl: profileSoundCloud,
-            youtubeUrl: profileYouTube,
-            instagramUrl: profileInstagram,
-            tiktokUrl: profileTikTok,
-          }),
-        });
+            spotify_url: profileSpotify.trim(),
+            apple_music_url: profileAppleMusic.trim(),
+            soundcloud_url: profileSoundCloud.trim(),
+            youtube_url: profileYouTube.trim(),
+            instagram_url: profileInstagram.trim(),
+            tiktok_url: profileTikTok.trim(),
+            updated_at: new Date().toISOString(),
+          }, { onConflict: "id" })
+          .select()
+          .single();
 
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(
-            data.error || "Couldn't save your profile."
-          );
-        }
-
-        if (data.profile) {
-          setProfileName(data.profile.displayName || profileName);
-        }
+        if (error) throw error;
+        if (savedProfile) setProfileName(savedProfile.display_name || profileName);
 
         setAuthMode("");
         setProfileMenuOpen(false);
         showNotice("Profile saved!");
       } else {
-        const result =
-          authMode === "signup"
-            ? await authClient.signUp.email({
-                name: authName,
-                email: authEmail,
-                password: authPassword,
-              })
-            : await authClient.signIn.email({
-                email: authEmail,
-                password: authPassword,
-              });
+        const wasSignup = authMode === "signup";
+        const result = wasSignup
+          ? await supabase.auth.signUp({
+              email: authEmail.trim(),
+              password: authPassword,
+              options: { data: { name: authName.trim() } },
+            })
+          : await supabase.auth.signInWithPassword({
+              email: authEmail.trim(),
+              password: authPassword,
+            });
 
         if (result.error) {
-          throw new Error(
-            result.error.message || "Something went wrong."
-          );
+          throw new Error(result.error.message || "Something went wrong.");
         }
 
-        const wasSignup = authMode === "signup";
+        if (wasSignup && !result.data.session) {
+          showNotice("Check your email to confirm your account.");
+        }
 
         setAuthMode("");
         setAuthEmail("");
