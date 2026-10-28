@@ -1000,6 +1000,10 @@ function App() {
 
               {publicProfiles.map((artist) => {
 
+                const spotifyArtistId = (artist.spotify_url || "").match(
+                  /open\\.spotify\\.com\\/artist\\/([A-Za-z0-9]+)/i
+                )?.[1];
+
                 const links = [
 
                   ["Spotify", artist.spotify_url],
@@ -1076,6 +1080,20 @@ function App() {
 
                       </div>
 
+                    )}
+
+                    {spotifyArtistId && (
+                      <div className="spotify-artist-embed">
+                        <iframe
+                          title={`Spotify artist: ${artist.display_name || artist.username}`}
+                          src={`https://open.spotify.com/embed/artist/${spotifyArtistId}?utm_source=generator`}
+                          width="100%"
+                          height="152"
+                          style={{ border: 0 }}
+                          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                          loading="lazy"
+                        />
+                      </div>
                     )}
 
                     {links.length > 0 && (
