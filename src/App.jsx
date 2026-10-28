@@ -1001,7 +1001,7 @@ function App() {
               {publicProfiles.map((artist) => {
 
                 const spotifyArtistId = (artist.spotify_url || "").match(
-                  /open\\.spotify\\.com\\/artist\\/([A-Za-z0-9]+)/i
+                  /open\.spotify\.com\/artist\/([A-Za-z0-9]+)/i
                 )?.[1];
 
                 const links = [
