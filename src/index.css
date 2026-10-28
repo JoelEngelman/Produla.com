@@ -1643,3 +1643,20 @@ h2 {
   .request-grid { grid-template-columns: minmax(0, 1fr); }
   .request-card { padding: 20px; }
 }
+
+
+/* Embedded Spotify artist profile */
+.spotify-artist-embed {
+  width: 100%;
+  overflow: hidden;
+  margin: 18px 0 4px;
+  border-radius: 12px;
+  background: #f0eee8;
+}
+.spotify-artist-embed iframe {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  border: 0;
+  border-radius: 12px;
+}
