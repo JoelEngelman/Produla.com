@@ -13,6 +13,12 @@ function App() {
   const [notice, setNotice] = useState("");
 
   const [publicProfiles, setPublicProfiles] = useState([]);
+  const [songRequests, setSongRequests] = useState([]);
+  const [requestsLoading, setRequestsLoading] = useState(true);
+  const [requestTitle, setRequestTitle] = useState("");
+  const [requestDescription, setRequestDescription] = useState("");
+  const [requestGenre, setRequestGenre] = useState("");
+  const [requestLookingFor, setRequestLookingFor] = useState("Producer");
 
 
 
@@ -57,6 +63,31 @@ function App() {
   }, []);
 
 
+
+  async function loadSongRequests() {
+    setRequestsLoading(true);
+    const { data, error } = await supabase.from("song_requests")
+      .select("id, author_id, title, description, genre, looking_for, created_at")
+      .order("created_at", { ascending: false }).limit(30);
+    if (error) {
+      console.error("Could not load song requests:", error.message);
+      setRequestsLoading(false);
+      return;
+    }
+    const requests = data || [];
+    const authorIds = [...new Set(requests.map((request) => request.author_id))];
+    let authorsById = {};
+    if (authorIds.length) {
+      const { data: authors, error: authorsError } = await supabase.from("artist_profiles")
+        .select("id, username, display_name, artist_type").in("id", authorIds);
+      if (authorsError) console.error("Could not load request authors:", authorsError.message);
+      (authors || []).forEach((author) => { authorsById[author.id] = author; });
+    }
+    setSongRequests(requests.map((request) => ({ ...request, author: authorsById[request.author_id] || null })));
+    setRequestsLoading(false);
+  }
+
+  useEffect(() => { loadSongRequests(); }, []);
 
   const [session, setSession] = useState(null);
 
@@ -308,7 +339,24 @@ function App() {
 
     try {
 
-      if (authMode === "profile") {
+      if (authMode === "request") {
+        if (!session?.user?.id) throw new Error("Log in to post a song request.");
+        const { error } = await supabase.from("song_requests").insert({
+          author_id: session.user.id,
+          title: requestTitle.trim(),
+          description: requestDescription.trim(),
+          genre: requestGenre.trim(),
+          looking_for: requestLookingFor,
+        });
+        if (error) throw error;
+        setRequestTitle("");
+        setRequestDescription("");
+        setRequestGenre("");
+        setRequestLookingFor("Producer");
+        setAuthMode("");
+        await loadSongRequests();
+        showNotice("Song request posted!");
+      } else if (authMode === "profile") {
 
         const genres = profileGenres
 
@@ -818,6 +866,40 @@ function App() {
 
 
 
+          {requestsLoading ? (
+            <div className="empty-state"><p>Loading song requests...</p></div>
+          ) : songRequests.length > 0 ? (
+            <div className="request-grid">
+              {songRequests.map((request) => (
+                <article className="request-card" key={request.id}>
+                  <div className="request-card-meta">
+                    <span className="request-tag">{request.looking_for}</span>
+                    {request.genre && <span className="request-genre">{request.genre}</span>}
+                  </div>
+                  <h3>{request.title}</h3>
+                  <p className="request-description">{request.description}</p>
+                  <div className="request-card-footer">
+                    <div>
+                      <strong>{request.author?.display_name || request.author?.username || "Produla artist"}</strong>
+                      <span>{request.author?.username ? "@" + request.author.username : "Artist"}</span>
+                    </div>
+                    <span className="request-date">{new Date(request.created_at).toLocaleDateString()}</span>
+                  </div>
+                  {session?.user?.id === request.author_id && (
+                    <button className="request-delete" onClick={async () => {
+                      const { error } = await supabase.from("song_requests")
+                        .delete().eq("id", request.id).eq("author_id", session.user.id);
+                      if (error) showNotice(error.message || "Couldn't delete request.");
+                      else {
+                        setSongRequests((current) => current.filter((item) => item.id !== request.id));
+                        showNotice("Song request deleted.");
+                      }
+                    }}>Delete request</button>
+                  )}
+                </article>
+              ))}
+            </div>
+          ) : (
           <div className="empty-state">
 
             <div className="empty-state-icon">♫</div>
@@ -826,22 +908,21 @@ function App() {
 
             <p>
 
-              No song requests have been posted yet.
-
-              When real artists share their ideas, you'll find them here. Currently in development.
+              When artists post a song idea, it will show up here for producers to discover.
 
             </p>
 
             <button
-
               className="button button-dark"
-
-              onClick={() =>
-
-                showNotice("Posting song requests isn't available yet.")
-
-              }
-
+              onClick={() => {
+                if (session?.user) {
+                  setAuthError("");
+                  setAuthMode("request");
+                } else {
+                  setAuthError("Log in to post a song request.");
+                  setAuthMode("login");
+                }
+              }}
             >
 
               Post a song request <span>↗</span>
@@ -849,6 +930,7 @@ function App() {
             </button>
 
           </div>
+          )}
 
         </section>
 
@@ -1159,33 +1241,18 @@ function App() {
 
 
             <h2>
-
-              {authMode === "profile"
-
-                ? "Your profile."
-
-                : authMode === "login"
-
-                  ? "Welcome back."
-
-                  : "Make something real."}
-
+              {authMode === "request" ? "Post a song request." :
+                authMode === "profile" ? "Your profile." :
+                authMode === "login" ? "Welcome back." : "Make something real."}
             </h2>
 
 
 
             <p>
-
-              {authMode === "profile"
-
-                ? "Make your Produla profile yours."
-
-                : authMode === "login"
-
-                  ? "Log in to continue making music together."
-
-                  : "Create your Produla account to get started."}
-
+              {authMode === "request" ? "Give producers an idea of the song you want to make." :
+                authMode === "profile" ? "Make your Produla profile yours." :
+                authMode === "login" ? "Log in to continue making music together." :
+                "Create your Produla account to get started."}
             </p>
 
 
@@ -1418,6 +1485,24 @@ function App() {
 
 
 
+              {authMode === "request" && (
+                <>
+                  <input type="text" placeholder="Song idea or working title" value={requestTitle}
+                    onChange={(event) => setRequestTitle(event.target.value)}
+                    minLength={3} maxLength={100} required />
+                  <textarea placeholder="Describe the sound, mood, or idea you have in mind..."
+                    value={requestDescription} onChange={(event) => setRequestDescription(event.target.value)}
+                    minLength={10} maxLength={1200} rows={5} required />
+                  <input type="text" placeholder="Genre (e.g. house, R&B, pop)" value={requestGenre}
+                    onChange={(event) => setRequestGenre(event.target.value)} maxLength={60} />
+                  <select value={requestLookingFor} onChange={(event) => setRequestLookingFor(event.target.value)}>
+                    <option value="Producer">Looking for a producer</option>
+                    <option value="Singer">Looking for a singer</option>
+                    <option value="Either">Open to either</option>
+                  </select>
+                </>
+              )}
+
               {authMode === "signup" && (
 
                 <input
@@ -1438,7 +1523,7 @@ function App() {
 
 
 
-              {authMode !== "profile" && (
+              {authMode !== "profile" && authMode !== "request" && (
 
                 <>
 
@@ -1514,10 +1599,10 @@ function App() {
 
                     ? "Save profile"
 
+                    : authMode === "request"
+                    ? "Post song request"
                     : authMode === "login"
-
                       ? "Log in"
-
                       : "Create account"}
 
               </button>
@@ -1526,7 +1611,7 @@ function App() {
 
 
 
-            {authMode !== "profile" && (
+            {authMode !== "profile" && authMode !== "request" && (
 
               <button
 
