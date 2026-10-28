@@ -1,0 +1,1597 @@
+
+
+import { useEffect, useState } from "react";
+
+import { supabase } from "./lib/supabase";
+
+import "./App.css";
+
+
+
+function App() {
+
+  const [notice, setNotice] = useState("");
+
+  const [publicProfiles, setPublicProfiles] = useState([]);
+
+
+
+  useEffect(() => {
+
+    let active = true;
+
+
+
+    async function loadPublicProfiles() {
+
+      const { data, error } = await supabase
+
+        .from("artist_profiles")
+
+        .select("id, username, display_name, artist_type, bio, genres, spotify_url, apple_music_url, soundcloud_url, youtube_url, instagram_url, tiktok_url")
+
+        .order("created_at", { ascending: false })
+
+        .limit(24);
+
+
+
+      if (error) {
+
+        console.error("Could not load artist profiles:", error.message);
+
+        return;
+
+      }
+
+      if (active) setPublicProfiles(data || []);
+
+    }
+
+
+
+    loadPublicProfiles();
+
+    return () => { active = false; };
+
+  }, []);
+
+
+
+  const [session, setSession] = useState(null);
+
+  const [sessionPending, setSessionPending] = useState(true);
+
+
+
+  useEffect(() => {
+
+    let active = true;
+
+
+
+    function toAppSession(authSession) {
+
+      if (!authSession?.user) return null;
+
+      const user = authSession.user;
+
+      return {
+
+        user: {
+
+          id: user.id,
+
+          email: user.email || "",
+
+          name:
+
+            user.user_metadata?.name ||
+
+            user.user_metadata?.full_name ||
+
+            user.email ||
+
+            "Artist",
+
+        },
+
+      };
+
+    }
+
+
+
+    supabase.auth.getSession().then(({ data, error }) => {
+
+      if (!active) return;
+
+      if (error) console.error("Could not restore session:", error.message);
+
+      setSession(toAppSession(data?.session));
+
+      setSessionPending(false);
+
+    });
+
+
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+
+      (_event, authSession) => {
+
+        setSession(toAppSession(authSession));
+
+        setSessionPending(false);
+
+      }
+
+    );
+
+
+
+    return () => {
+
+      active = false;
+
+      subscription.unsubscribe();
+
+    };
+
+  }, []);
+
+
+
+  const [profileName, setProfileName] = useState("");
+
+  const [profileType, setProfileType] = useState("singer");
+
+  const [profileUsername, setProfileUsername] = useState("");
+
+  const [profileBio, setProfileBio] = useState("");
+
+  const [profileGenres, setProfileGenres] = useState("");
+
+  const [profileSpotify, setProfileSpotify] = useState("");
+
+  const [profileAppleMusic, setProfileAppleMusic] = useState("");
+
+  const [profileSoundCloud, setProfileSoundCloud] = useState("");
+
+  const [profileYouTube, setProfileYouTube] = useState("");
+
+  const [profileInstagram, setProfileInstagram] = useState("");
+
+  const [profileTikTok, setProfileTikTok] = useState("");
+
+
+
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+
+  const [authMode, setAuthMode] = useState("");
+
+  const [authEmail, setAuthEmail] = useState("");
+
+  const [authPassword, setAuthPassword] = useState("");
+
+  const [authName, setAuthName] = useState("");
+
+  const [authError, setAuthError] = useState("");
+
+  const [authLoading, setAuthLoading] = useState(false);
+
+
+
+  function showNotice(message) {
+
+    setNotice(message);
+
+    window.setTimeout(() => setNotice(""), 2800);
+
+  }
+
+
+
+  function clearProfileFields() {
+
+    setProfileUsername("");
+
+    setProfileName(session?.user?.name || "");
+
+    setProfileType("singer");
+
+    setProfileBio("");
+
+    setProfileGenres("");
+
+    setProfileSpotify("");
+
+    setProfileAppleMusic("");
+
+    setProfileSoundCloud("");
+
+    setProfileYouTube("");
+
+    setProfileInstagram("");
+
+    setProfileTikTok("");
+
+  }
+
+
+
+  async function openProfileEditor() {
+
+    setProfileMenuOpen(false);
+
+    setAuthMode("profile");
+
+    setAuthError("");
+
+    setAuthLoading(true);
+
+    clearProfileFields();
+
+
+
+    try {
+
+      const { data: profile, error } = await supabase
+
+        .from("artist_profiles")
+
+        .select("*")
+
+        .eq("id", session.user.id)
+
+        .maybeSingle();
+
+
+
+      if (error) throw error;
+
+
+
+      if (profile) {
+
+        setProfileUsername(profile.username || "");
+
+        setProfileName(profile.display_name || session?.user?.name || "");
+
+        setProfileType(profile.artist_type || "singer");
+
+        setProfileBio(profile.bio || "");
+
+        setProfileGenres(Array.isArray(profile.genres) ? profile.genres.join(", ") : "");
+
+        setProfileSpotify(profile.spotify_url || "");
+
+        setProfileAppleMusic(profile.apple_music_url || "");
+
+        setProfileSoundCloud(profile.soundcloud_url || "");
+
+        setProfileYouTube(profile.youtube_url || "");
+
+        setProfileInstagram(profile.instagram_url || "");
+
+        setProfileTikTok(profile.tiktok_url || "");
+
+      }
+
+    } catch (error) {
+
+      setAuthError(
+
+        error.message || "Couldn't load your profile. Please try again."
+
+      );
+
+    } finally {
+
+      setAuthLoading(false);
+
+    }
+
+  }
+
+
+
+  async function handleAuthSubmit(event) {
+
+    event.preventDefault();
+
+    setAuthError("");
+
+    setAuthLoading(true);
+
+
+
+    try {
+
+      if (authMode === "profile") {
+
+        const genres = profileGenres
+
+          .split(",")
+
+          .map((genre) => genre.trim())
+
+          .filter(Boolean)
+
+          .slice(0, 10);
+
+
+
+        const { data: savedProfile, error } = await supabase
+
+          .from("artist_profiles")
+
+          .upsert({
+
+            id: session.user.id,
+
+            username: profileUsername.trim().toLowerCase(),
+
+            display_name: profileName.trim(),
+
+            artist_type: profileType,
+
+            bio: profileBio.trim(),
+
+            genres,
+
+            spotify_url: profileSpotify.trim(),
+
+            apple_music_url: profileAppleMusic.trim(),
+
+            soundcloud_url: profileSoundCloud.trim(),
+
+            youtube_url: profileYouTube.trim(),
+
+            instagram_url: profileInstagram.trim(),
+
+            tiktok_url: profileTikTok.trim(),
+
+            updated_at: new Date().toISOString(),
+
+          }, { onConflict: "id" })
+
+          .select()
+
+          .single();
+
+
+
+        if (error) throw error;
+
+        if (savedProfile) {
+
+          setProfileName(savedProfile.display_name || profileName);
+
+          setPublicProfiles((current) =>
+
+            [savedProfile, ...current.filter((profile) => profile.id !== savedProfile.id)].slice(0, 24)
+
+          );
+
+        }
+
+
+
+        setAuthMode("");
+
+        setProfileMenuOpen(false);
+
+        showNotice("Profile saved!");
+
+      } else {
+
+        const wasSignup = authMode === "signup";
+
+        const result = wasSignup
+
+          ? await supabase.auth.signUp({
+
+              email: authEmail.trim(),
+
+              password: authPassword,
+
+              options: { data: { name: authName.trim() }, emailRedirectTo: window.location.origin },
+
+            })
+
+          : await supabase.auth.signInWithPassword({
+
+              email: authEmail.trim(),
+
+              password: authPassword,
+
+            });
+
+
+
+        if (result.error) {
+
+          throw new Error(result.error.message || "Something went wrong.");
+
+        }
+
+
+
+        setAuthMode("");
+
+        setAuthEmail("");
+
+        setAuthPassword("");
+
+        setAuthName("");
+
+
+
+        showNotice(
+
+          wasSignup
+
+            ? result.data.session
+
+              ? "Account created successfully!"
+
+              : "Check your email to confirm your account."
+
+            : "You're logged in!"
+
+        );
+
+      }
+
+    } catch (error) {
+
+      setAuthError(
+
+        error.message || "Couldn't connect. Please try again."
+
+      );
+
+    } finally {
+
+      setAuthLoading(false);
+
+    }
+
+  }
+
+
+
+  return (
+
+    <div className="app-shell">
+
+      <header className="navbar">
+
+        <a className="wordmark" href="#home" aria-label="Produla home">
+
+          produla<span>.</span>
+
+        </a>
+
+
+
+        <nav className="nav-links" aria-label="Main navigation">
+
+          <a className="nav-active" href="#discover">Discover</a>
+
+          <a href="#producers">Producers</a>
+
+          <a href="#samples">Samples</a>
+
+        </nav>
+
+
+
+        <div className="nav-actions">
+
+          {sessionPending ? null : session?.user ? (
+
+            <div className="account-actions">
+
+              <button
+
+                className="account-avatar"
+
+                title="Your profile"
+
+                aria-label="Open profile menu"
+
+                onClick={() => setProfileMenuOpen(!profileMenuOpen)}
+
+              >
+
+                {(
+
+                  (session.user.name || session.user.email || "U")
+
+                    .trim()
+
+                    .split(/\s+/)
+
+                    .map((part) => part[0])
+
+                    .join("")
+
+                    .slice(0, 2)
+
+                ).toUpperCase()}
+
+              </button>
+
+
+
+              <span className="account-greeting">
+
+                Hi, {session.user.name || session.user.email}
+
+              </span>
+
+
+
+              <button
+
+                className="button button-dark nav-cta"
+
+                onClick={async () => {
+
+                  const result = await supabase.auth.signOut();
+
+
+
+                  if (result.error) {
+
+                    showNotice(
+
+                      result.error.message || "Couldn't log out."
+
+                    );
+
+                  } else {
+
+                    setProfileMenuOpen(false);
+
+                    showNotice("You've logged out.");
+
+                  }
+
+                }}
+
+              >
+
+                Log out
+
+              </button>
+
+
+
+              {profileMenuOpen && (
+
+                <div className="profile-menu">
+
+                  <div className="profile-menu-user">
+
+                    <strong>
+
+                      {session.user.name || "Your account"}
+
+                    </strong>
+
+                    <span>{session.user.email}</span>
+
+                  </div>
+
+
+
+                  <button onClick={openProfileEditor}>
+
+                    Edit profile
+
+                  </button>
+
+
+
+                  <button
+
+                    onClick={async () => {
+
+                      setProfileMenuOpen(false);
+
+                      const result = await supabase.auth.signOut();
+
+
+
+                      if (result.error) {
+
+                        showNotice(
+
+                          result.error.message || "Couldn't log out."
+
+                        );
+
+                      } else {
+
+                        showNotice("You've logged out.");
+
+                      }
+
+                    }}
+
+                  >
+
+                    Log out
+
+                  </button>
+
+                </div>
+
+              )}
+
+            </div>
+
+          ) : (
+
+            <>
+
+              <button
+
+                className="login-button"
+
+                onClick={() => {
+
+                  setAuthMode("login");
+
+                  setAuthError("");
+
+                }}
+
+              >
+
+                Log in
+
+              </button>
+
+
+
+              <button
+
+                className="button button-dark nav-cta"
+
+                onClick={() => {
+
+                  setAuthMode("signup");
+
+                  setAuthError("");
+
+                }}
+
+              >
+
+                Get started <span>↗</span>
+
+              </button>
+
+            </>
+
+          )}
+
+        </div>
+
+      </header>
+
+
+
+      <main id="home">
+
+        <section className="hero">
+
+          <div className="hero-copy">
+
+            <div className="eyebrow">
+
+              <span className="live-dot" />
+
+              A NEW WAY TO MAKE MUSIC
+
+            </div>
+
+
+
+            <h1>
+
+              Your sound.
+
+              <br />
+
+              <span>Your people.</span>
+
+            </h1>
+
+
+
+            <p className="hero-description">
+
+              Find the producer who gets your vision.
+
+              Discover new sounds. Make something that
+
+              wouldn't exist without you both.
+
+            </p>
+
+
+
+            <div className="hero-actions">
+
+              <a className="button button-dark" href="#producers">
+
+                Find your producer <span>↗</span>
+
+              </a>
+
+              <a className="button button-light" href="#discover">
+
+                Explore the community
+
+              </a>
+
+            </div>
+
+
+
+            <div className="hero-proof">
+
+              <div className="hero-proof-symbol">✳</div>
+
+              <p>
+
+                <strong>Made together.</strong>
+
+                <br />
+
+                Built around your next big idea.
+
+              </p>
+
+            </div>
+
+          </div>
+
+
+
+          <div className="hero-art">
+
+            <img
+
+              className="hero-art-image"
+
+              src={`${import.meta.env.BASE_URL}header-art.jpg`}
+
+              alt="Produla music artwork"
+
+            />
+
+          </div>
+
+        </section>
+
+
+
+        <section className="ticker" aria-label="What Produla offers">
+
+          <span>FIND YOUR SOUND</span><i>✳</i>
+
+          <span>MEET YOUR PEOPLE</span><i>✳</i>
+
+          <span>MAKE SOMETHING REAL</span><i>✳</i>
+
+          <span>FIND YOUR SOUND</span>
+
+        </section>
+
+
+
+        <section className="discover-section" id="discover">
+
+          <div className="section-heading">
+
+            <div>
+
+              <div className="eyebrow">Find your next collaborator</div>
+
+              <h2>
+
+                Ideas looking for <span>their song.</span>
+
+              </h2>
+
+              <p>Artists with ideas, songs worth sharing.</p>
+
+            </div>
+
+          </div>
+
+
+
+          <div className="empty-state">
+
+            <div className="empty-state-icon">♫</div>
+
+            <h3>The first song starts with you.</h3>
+
+            <p>
+
+              No song requests have been posted yet.
+
+              When real artists share their ideas, you'll find them here. Currently in development.
+
+            </p>
+
+            <button
+
+              className="button button-dark"
+
+              onClick={() =>
+
+                showNotice("Posting song requests isn't available yet.")
+
+              }
+
+            >
+
+              Post a song request <span>↗</span>
+
+            </button>
+
+          </div>
+
+        </section>
+
+
+
+        <section className="producer-section" id="producers">
+
+          <div className="section-heading">
+
+            <div>
+
+              <div className="eyebrow">PRODUCERS</div>
+
+              <h2>
+
+                Meet your next <span>producer.</span>
+
+              </h2>
+
+              <p>Discover creative minds and hear what they make.</p>
+
+            </div>
+
+          </div>
+
+
+
+          {publicProfiles.length === 0 ? (
+
+            <div className="empty-state">
+
+              <div className="empty-state-icon">✳</div>
+
+              <h3>A community waiting to happen.</h3>
+
+              <p>
+
+                There aren't any producer profiles yet.
+
+                Real producers will appear here when they join Produla.
+
+              </p>
+
+              <button
+
+                className="button button-dark"
+
+                onClick={() => {
+
+                  if (session?.user) openProfileEditor();
+
+                  else setAuthMode("signup");
+
+                }}
+
+              >
+
+                Join as a producer <span>↗</span>
+
+              </button>
+
+            </div>
+
+          ) : (
+
+            <div className="artist-grid">
+
+              {publicProfiles.map((artist) => {
+
+                const links = [
+
+                  ["Spotify", artist.spotify_url],
+
+                  ["Apple Music", artist.apple_music_url],
+
+                  ["SoundCloud", artist.soundcloud_url],
+
+                  ["YouTube", artist.youtube_url],
+
+                  ["Instagram", artist.instagram_url],
+
+                  ["TikTok", artist.tiktok_url],
+
+                ].filter(([, url]) => /^https?:\/\//i.test(url || ""));
+
+
+
+                return (
+
+                  <article className="artist-card" key={artist.id}>
+
+                    <div className="artist-card-top">
+
+                      <span className="artist-avatar">
+
+                        {(artist.display_name || artist.username || "A")
+
+                          .trim()
+
+                          .split(/\s+/)
+
+                          .map((part) => part[0])
+
+                          .join("")
+
+                          .slice(0, 2)
+
+                          .toUpperCase()}
+
+                      </span>
+
+                      <span className="artist-type">
+
+                        {artist.artist_type === "both"
+
+                          ? "Singer · Producer"
+
+                          : artist.artist_type === "producer"
+
+                            ? "Producer"
+
+                            : "Singer"}
+
+                      </span>
+
+                    </div>
+
+                    <h3>{artist.display_name}</h3>
+
+                    <p className="artist-username">@{artist.username}</p>
+
+                    {artist.bio && <p className="artist-bio">{artist.bio}</p>}
+
+                    {artist.genres?.length > 0 && (
+
+                      <div className="artist-genres">
+
+                        {artist.genres.slice(0, 5).map((genre) => (
+
+                          <span key={genre}>{genre}</span>
+
+                        ))}
+
+                      </div>
+
+                    )}
+
+                    {links.length > 0 && (
+
+                      <div className="artist-links">
+
+                        {links.map(([label, url]) => (
+
+                          <a key={label} href={url} target="_blank" rel="noreferrer">
+
+                            {label} ↗
+
+                          </a>
+
+                        ))}
+
+                      </div>
+
+                    )}
+
+                  </article>
+
+                );
+
+              })}
+
+            </div>
+
+          )}
+
+        </section>
+
+
+
+        <section className="sample-banner" id="samples">
+
+          <div>
+
+            <div className="eyebrow">
+
+              A LITTLE SOMETHING TO START WITH
+
+            </div>
+
+            <h2>
+
+              Sometimes one sound
+
+              <br />
+
+              changes <span>everything.</span>
+
+            </h2>
+
+            <p>Find your next loop, vocal chop, or happy accident.</p>
+
+            <button
+
+              className="button button-dark"
+
+              onClick={() =>
+
+                showNotice("Sample uploads and purchases aren't available yet.")
+
+              }
+
+            >
+
+              Explore samples <span>↗</span>
+
+            </button>
+
+          </div>
+
+
+
+          <div className="sample-graphic" aria-hidden="true">
+
+            {Array.from({ length: 45 }, (_, i) => (
+
+              <span
+
+                key={i}
+
+                style={{
+
+                  height: `${14 + Math.abs(Math.sin(i * 0.43)) * 105}px`,
+
+                }}
+
+              />
+
+            ))}
+
+            <div className="sample-play">▶</div>
+
+          </div>
+
+        </section>
+
+      </main>
+
+
+
+      <footer className="footer">
+
+        <a className="wordmark" href="#home">
+
+          produla<span>.</span>
+
+        </a>
+
+        <p>Good music is better together.</p>
+
+        <span>MADE FOR WHAT'S NEXT. © 2026 PRODULA</span>
+
+      </footer>
+
+
+
+      {authMode && (
+
+        <div
+
+          className="auth-overlay"
+
+          onClick={() => {
+
+            if (!authLoading) setAuthMode("");
+
+          }}
+
+        >
+
+          <div
+
+            className="auth-modal"
+
+            onClick={(event) => event.stopPropagation()}
+
+          >
+
+            <button
+
+              className="auth-close"
+
+              onClick={() => {
+
+                if (!authLoading) setAuthMode("");
+
+              }}
+
+              aria-label="Close"
+
+              disabled={authLoading}
+
+            >
+
+              ×
+
+            </button>
+
+
+
+            <h2>
+
+              {authMode === "profile"
+
+                ? "Your profile."
+
+                : authMode === "login"
+
+                  ? "Welcome back."
+
+                  : "Make something real."}
+
+            </h2>
+
+
+
+            <p>
+
+              {authMode === "profile"
+
+                ? "Make your Produla profile yours."
+
+                : authMode === "login"
+
+                  ? "Log in to continue making music together."
+
+                  : "Create your Produla account to get started."}
+
+            </p>
+
+
+
+            <form onSubmit={handleAuthSubmit}>
+
+              {authMode === "profile" && (
+
+                <>
+
+                  <input
+
+                    type="text"
+
+                    placeholder="Username (e.g. joelmusic)"
+
+                    value={profileUsername}
+
+                    onChange={(event) =>
+
+                      setProfileUsername(event.target.value)
+
+                    }
+
+                    minLength={3}
+
+                    maxLength={24}
+
+                    pattern="[A-Za-z0-9_]+"
+
+                    title="Use 3–24 letters, numbers or underscores."
+
+                    required
+
+                  />
+
+
+
+                  <input
+
+                    type="text"
+
+                    placeholder="Display name"
+
+                    value={profileName}
+
+                    onChange={(event) =>
+
+                      setProfileName(event.target.value)
+
+                    }
+
+                    maxLength={80}
+
+                    required
+
+                  />
+
+
+
+                  <select
+
+                    value={profileType}
+
+                    onChange={(event) =>
+
+                      setProfileType(event.target.value)
+
+                    }
+
+                  >
+
+                    <option value="singer">I'm a singer</option>
+
+                    <option value="producer">I'm a producer</option>
+
+                    <option value="both">I'm both</option>
+
+                  </select>
+
+
+
+                  <textarea
+
+                    placeholder="Tell people about your music..."
+
+                    value={profileBio}
+
+                    onChange={(event) =>
+
+                      setProfileBio(event.target.value)
+
+                    }
+
+                    maxLength={500}
+
+                    rows={3}
+
+                  />
+
+
+
+                  <input
+
+                    type="text"
+
+                    placeholder="Genres (e.g. Pop, R&B, Hip-hop)"
+
+                    value={profileGenres}
+
+                    onChange={(event) =>
+
+                      setProfileGenres(event.target.value)
+
+                    }
+
+                  />
+
+
+
+                  <input
+
+                    type="url"
+
+                    placeholder="Spotify URL"
+
+                    value={profileSpotify}
+
+                    onChange={(event) =>
+
+                      setProfileSpotify(event.target.value)
+
+                    }
+
+                  />
+
+
+
+                  <input
+
+                    type="url"
+
+                    placeholder="Apple Music URL"
+
+                    value={profileAppleMusic}
+
+                    onChange={(event) =>
+
+                      setProfileAppleMusic(event.target.value)
+
+                    }
+
+                  />
+
+
+
+                  <input
+
+                    type="url"
+
+                    placeholder="SoundCloud URL"
+
+                    value={profileSoundCloud}
+
+                    onChange={(event) =>
+
+                      setProfileSoundCloud(event.target.value)
+
+                    }
+
+                  />
+
+
+
+                  <input
+
+                    type="url"
+
+                    placeholder="YouTube URL"
+
+                    value={profileYouTube}
+
+                    onChange={(event) =>
+
+                      setProfileYouTube(event.target.value)
+
+                    }
+
+                  />
+
+
+
+                  <input
+
+                    type="url"
+
+                    placeholder="Instagram URL"
+
+                    value={profileInstagram}
+
+                    onChange={(event) =>
+
+                      setProfileInstagram(event.target.value)
+
+                    }
+
+                  />
+
+
+
+                  <input
+
+                    type="url"
+
+                    placeholder="TikTok URL"
+
+                    value={profileTikTok}
+
+                    onChange={(event) =>
+
+                      setProfileTikTok(event.target.value)
+
+                    }
+
+                  />
+
+                </>
+
+              )}
+
+
+
+              {authMode === "signup" && (
+
+                <input
+
+                  type="text"
+
+                  placeholder="Your name"
+
+                  value={authName}
+
+                  onChange={(event) => setAuthName(event.target.value)}
+
+                  required
+
+                />
+
+              )}
+
+
+
+              {authMode !== "profile" && (
+
+                <>
+
+                  <input
+
+                    type="email"
+
+                    placeholder="Email address"
+
+                    value={authEmail}
+
+                    onChange={(event) => setAuthEmail(event.target.value)}
+
+                    required
+
+                  />
+
+
+
+                  <input
+
+                    type="password"
+
+                    placeholder="Password (at least 8 characters)"
+
+                    value={authPassword}
+
+                    onChange={(event) =>
+
+                      setAuthPassword(event.target.value)
+
+                    }
+
+                    minLength={8}
+
+                    required
+
+                  />
+
+                </>
+
+              )}
+
+
+
+              {authError && (
+
+                <p className="auth-error" role="alert">
+
+                  {authError}
+
+                </p>
+
+              )}
+
+
+
+              <button
+
+                className="button button-dark auth-submit"
+
+                type="submit"
+
+                disabled={authLoading}
+
+              >
+
+                {authLoading
+
+                  ? "Please wait..."
+
+                  : authMode === "profile"
+
+                    ? "Save profile"
+
+                    : authMode === "login"
+
+                      ? "Log in"
+
+                      : "Create account"}
+
+              </button>
+
+            </form>
+
+
+
+            {authMode !== "profile" && (
+
+              <button
+
+                className="auth-switch"
+
+                onClick={() => {
+
+                  setAuthMode(
+
+                    authMode === "login" ? "signup" : "login"
+
+                  );
+
+                  setAuthError("");
+
+                }}
+
+              >
+
+                {authMode === "login"
+
+                  ? "New to Produla? Create an account"
+
+                  : "Already have an account? Log in"}
+
+              </button>
+
+            )}
+
+          </div>
+
+        </div>
+
+      )}
+
+
+
+      {notice && (
+
+        <div className="toast" role="status">
+
+          <span>✳</span> {notice}
+
+          <button
+
+            aria-label="Dismiss notification"
+
+            onClick={() => setNotice("")}
+
+          >
+
+            ×
+
+          </button>
+
+        </div>
+
+      )}
+
+    </div>
+
+  );
+
+}
+
+
+
+export default App;
