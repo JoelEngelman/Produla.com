@@ -116,8 +116,22 @@ function App() {
   const [session, setSession] = useState(null);
 
   const [sessionPending, setSessionPending] = useState(true);
+  const [accountAvatarUrl, setAccountAvatarUrl] = useState("");
 
   const isCreatorAccount = session?.user?.id === PRODULA_CREATOR_ID;
+
+  useEffect(() => {
+    let active = true;
+    async function loadAccountAvatar() {
+      if (!session?.user?.id) { setAccountAvatarUrl(""); return; }
+      const { data, error } = await supabase.from("artist_profiles").select("avatar_url").eq("id", session.user.id).maybeSingle();
+      if (!active) return;
+      if (error) { console.error("Could not load account avatar:", error.message); return; }
+      setAccountAvatarUrl(data?.avatar_url || "");
+    }
+    loadAccountAvatar();
+    return () => { active = false; };
+  }, [session?.user?.id]);
 
 
 
@@ -461,6 +475,7 @@ function App() {
         if (savedProfile) {
 
           setProfileName(savedProfile.display_name || profileName);
+          setAccountAvatarUrl(savedProfile.avatar_url || "");
 
           setPublicProfiles((current) =>
 
@@ -601,7 +616,7 @@ function App() {
               >
 
 <img
-                  src={publicProfiles.find((profile) => profile.id === session.user.id)?.avatar_url || `${import.meta.env.BASE_URL}produla-avatar.svg`}
+                  src={accountAvatarUrl || `${import.meta.env.BASE_URL}produla-avatar.svg`}
                   alt="Produla"
                   className="brand-avatar-image"
                 />
