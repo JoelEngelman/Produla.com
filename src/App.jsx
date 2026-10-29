@@ -17,6 +17,10 @@ function App() {
   const [publicProfiles, setPublicProfiles] = useState([]);
   const [songRequests, setSongRequests] = useState([]);
   const [requestsLoading, setRequestsLoading] = useState(true);
+  const [requestSearch, setRequestSearch] = useState("");
+  const [requestFilter, setRequestFilter] = useState("All");
+  const [artistSearch, setArtistSearch] = useState("");
+  const [artistFilter, setArtistFilter] = useState("All");
   const [requestTitle, setRequestTitle] = useState("");
   const [requestDescription, setRequestDescription] = useState("");
   const [requestGenre, setRequestGenre] = useState("");
@@ -860,11 +864,41 @@ function App() {
 
 
 
+          <div className="marketplace-toolbar">
+            <label className="marketplace-search">
+              <span aria-hidden="true">⌕</span>
+              <input
+                type="search"
+                value={requestSearch}
+                onChange={(event) => setRequestSearch(event.target.value)}
+                placeholder="Search song ideas or genres..."
+                aria-label="Search song requests"
+              />
+            </label>
+            <div className="marketplace-filters" aria-label="Filter song requests">
+              {["All", "Producer", "Singer", "Either"].map((filter) => (
+                <button
+                  key={filter}
+                  type="button"
+                  className={requestFilter === filter ? "market-filter-active" : ""}
+                  onClick={() => setRequestFilter(filter)}
+                >{filter === "All" ? "All requests" : filter}</button>
+              ))}
+            </div>
+          </div>
           {requestsLoading ? (
             <div className="empty-state"><p>Loading song requests...</p></div>
-          ) : songRequests.length > 0 ? (
+          ) : songRequests.filter((request) => {
+              const query = requestSearch.trim().toLowerCase();
+              const searchable = [request.title, request.description, request.genre, request.author?.display_name, request.author?.username].join(" ").toLowerCase();
+              return (!query || searchable.includes(query)) && (requestFilter === "All" || request.looking_for === requestFilter);
+            }).length > 0 ? (
             <div className="request-grid">
-              {songRequests.map((request) => (
+              {songRequests.filter((request) => {
+                const query = requestSearch.trim().toLowerCase();
+                const searchable = [request.title, request.description, request.genre, request.author?.display_name, request.author?.username].join(" ").toLowerCase();
+                return (!query || searchable.includes(query)) && (requestFilter === "All" || request.looking_for === requestFilter);
+              }).map((request) => (
                 <article className="request-card" key={request.id}>
                   <div className="request-card-meta">
                     <span className="request-tag">{request.looking_for}</span>
@@ -895,8 +929,12 @@ function App() {
             </div>
           ) : (
           <div className="empty-state">
-
-            <div className="empty-state-icon">♫</div>
+            <div className="empty-state-icon">⌕</div>
+            <h3>{requestSearch || requestFilter !== "All" ? "No matching song ideas." : "The first song starts with you."}</h3>
+            <p>{requestSearch || requestFilter !== "All" ? "Try another search or switch the filter to see more requests." : "When artists post a song idea, it will show up here for producers to discover."}</p>
+            {requestSearch || requestFilter !== "All" ? (
+              <button className="button button-light" onClick={() => { setRequestSearch(""); setRequestFilter("All"); }}>Clear filters</button>
+            ) : (
 
             <h3>The first song starts with you.</h3>
 
@@ -918,11 +956,9 @@ function App() {
                 }
               }}
             >
-
               Post a song request <span>↗</span>
-
             </button>
-
+            )}
           </div>
           )}
 
@@ -952,6 +988,28 @@ function App() {
 
 
 
+          <div className="marketplace-toolbar artist-toolbar">
+            <label className="marketplace-search">
+              <span aria-hidden="true">⌕</span>
+              <input
+                type="search"
+                value={artistSearch}
+                onChange={(event) => setArtistSearch(event.target.value)}
+                placeholder="Search artists, usernames, genres..."
+                aria-label="Search artist profiles"
+              />
+            </label>
+            <div className="marketplace-filters" aria-label="Filter artist profiles">
+              {["All", "producer", "singer", "both"].map((filter) => (
+                <button
+                  key={filter}
+                  type="button"
+                  className={artistFilter === filter ? "market-filter-active" : ""}
+                  onClick={() => setArtistFilter(filter)}
+                >{{"All":"Everyone","producer":"Producers","singer":"Singers","both":"Both"}[filter]}</button>
+              ))}
+            </div>
+          </div>
           {publicProfiles.length === 0 ? (
 
             <div className="empty-state">
@@ -992,7 +1050,12 @@ function App() {
 
             <div className="artist-grid">
 
-              {publicProfiles.map((artist) => {
+              {publicProfiles.filter((artist) => {
+                const query = artistSearch.trim().toLowerCase();
+                const searchable = [artist.display_name, artist.username, artist.bio, ...(artist.genres || [])].join(" ").toLowerCase();
+                const roleMatches = artistFilter === "All" || artist.artist_type === artistFilter;
+                return (!query || searchable.includes(query)) && roleMatches;
+              }).map((artist) => {
 
                 const isCreatorProfile = artist.id === PRODULA_CREATOR_ID;
 
@@ -1121,7 +1184,18 @@ function App() {
               })}
 
             </div>
-
+            {publicProfiles.filter((artist) => {
+              const query = artistSearch.trim().toLowerCase();
+              const searchable = [artist.display_name, artist.username, artist.bio, ...(artist.genres || [])].join(" ").toLowerCase();
+              return (!query || searchable.includes(query)) && (artistFilter === "All" || artist.artist_type === artistFilter);
+            }).length === 0 && (
+              <div className="empty-state artist-no-results">
+                <div className="empty-state-icon">⌕</div>
+                <h3>No artists found.</h3>
+                <p>Try a different name, genre, or artist type.</p>
+                <button className="button button-light" onClick={() => { setArtistSearch(""); setArtistFilter("All"); }}>Clear filters</button>
+              </div>
+            )}
           )}
 
         </section>
