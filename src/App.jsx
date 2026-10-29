@@ -928,40 +928,25 @@ function App() {
               ))}
             </div>
           ) : (
-          <div className="empty-state">
-            <div className="empty-state-icon">⌕</div>
-            <h3>{requestSearch || requestFilter !== "All" ? "No matching song ideas." : "The first song starts with you."}</h3>
-            <p>{requestSearch || requestFilter !== "All" ? "Try another search or switch the filter to see more requests." : "When artists post a song idea, it will show up here for producers to discover."}</p>
-            {requestSearch || requestFilter !== "All" ? (
-              <button className="button button-light" onClick={() => { setRequestSearch(""); setRequestFilter("All"); }}>Clear filters</button>
-            ) : (
-
-            <h3>The first song starts with you.</h3>
-
-            <p>
-
-              When artists post a song idea, it will show up here for producers to discover.
-
-            </p>
-
-            <button
-              className="button button-dark"
-              onClick={() => {
-                if (session?.user) {
-                  setAuthError("");
-                  setAuthMode("request");
-                } else {
-                  setAuthError("Log in to post a song request.");
-                  setAuthMode("login");
-                }
-              }}
-            >
-              Post a song request <span>↗</span>
-            </button>
-            )}
-          </div>
+            <div className="empty-state">
+              <div className="empty-state-icon">{requestSearch || requestFilter !== "All" ? "⌕" : "♫"}</div>
+              <h3>{requestSearch || requestFilter !== "All" ? "No matching song ideas." : "The first song starts with you."}</h3>
+              <p>{requestSearch || requestFilter !== "All" ? "Try another search or switch the filter to see more requests." : "When artists post a song idea, it will show up here for producers to discover."}</p>
+              {requestSearch || requestFilter !== "All" ? (
+                <button className="button button-light" onClick={() => { setRequestSearch(""); setRequestFilter("All"); }}>Clear filters</button>
+              ) : (
+                <button className="button button-dark" onClick={() => {
+                  if (session?.user) {
+                    setAuthError("");
+                    setAuthMode("request");
+                  } else {
+                    setAuthError("Log in to post a song request.");
+                    setAuthMode("login");
+                  }
+                }}>Post a song request <span>↗</span></button>
+              )}
+            </div>
           )}
-
         </section>
 
 
