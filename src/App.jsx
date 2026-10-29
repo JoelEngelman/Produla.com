@@ -18,6 +18,15 @@ function App() {
   const [songRequests, setSongRequests] = useState([]);
   const [samples, setSamples] = useState([]);
   const [samplesLoading, setSamplesLoading] = useState(true);
+  const [songs, setSongs] = useState([]);
+  const [songsLoading, setSongsLoading] = useState(true);
+  const [songSearch, setSongSearch] = useState("");
+  const [songGenreFilter, setSongGenreFilter] = useState("All");
+  const [songTitle, setSongTitle] = useState("");
+  const [songDescription, setSongDescription] = useState("");
+  const [songGenre, setSongGenre] = useState("");
+  const [songAudioFile, setSongAudioFile] = useState(null);
+  const [songAudioPreview, setSongAudioPreview] = useState("");
   const [sampleSearch, setSampleSearch] = useState("");
   const [sampleGenreFilter, setSampleGenreFilter] = useState("All");
   const [sampleTitle, setSampleTitle] = useState("");
@@ -150,7 +159,30 @@ function App() {
 
   useEffect(() => { loadSamples(); }, []);
 
+  async function loadSongs() {
+    setSongsLoading(true);
+    const { data, error } = await supabase.from("songs")
+      .select("id, creator_id, title, description, genre, audio_path, audio_url, created_at")
+      .order("created_at", { ascending: false }).limit(100);
+    if (error) {
+      console.error("Could not load songs:", error.message);
+      setSongsLoading(false);
+      return;
+    }
+    const rows = data || [];
+    const creatorIds = [...new Set(rows.map((song) => song.creator_id))];
+    let creatorsById = {};
+    if (creatorIds.length) {
+      const { data: creators, error: creatorsError } = await supabase.from("artist_profiles")
+        .select("id, username, display_name, avatar_url").in("id", creatorIds);
+      if (creatorsError) console.error("Could not load song artists:", creatorsError.message);
+      (creators || []).forEach((creator) => { creatorsById[creator.id] = creator; });
+    }
+    setSongs(rows.map((song) => ({ ...song, creator: creatorsById[song.creator_id] || null })));
+    setSongsLoading(false);
+  }
 
+  useEffect(() => { loadSongs(); }, []);
 
   const [session, setSession] = useState(null);
 
@@ -425,7 +457,35 @@ function App() {
 
     try {
 
-      if (authMode === "sample") {
+      if (authMode === "song") {
+        if (!session?.user?.id) throw new Error("Log in to upload a song.");
+        if (!songAudioFile) throw new Error("Choose an audio file to upload.");
+        const allowedTypes = ["audio/mpeg", "audio/mp3", "audio/wav", "audio/x-wav", "audio/mp4", "audio/aac", "audio/ogg", "audio/flac", "audio/webm"];
+        if (!allowedTypes.includes(songAudioFile.type)) throw new Error("Choose an MP3, WAV, M4A, AAC, OGG, FLAC or WebM audio file.");
+        if (songAudioFile.size > 100 * 1024 * 1024) throw new Error("Your song file must be 100 MB or smaller.");
+        const extension = (songAudioFile.name.split(".").pop() || "mp3").toLowerCase().replace(/[^a-z0-9]/g, "");
+        const path = `${session.user.id}/${crypto.randomUUID()}.${extension}`;
+        const { error: uploadError } = await supabase.storage.from("song-audio").upload(path, songAudioFile, { contentType: songAudioFile.type, upsert: false });
+        if (uploadError) throw uploadError;
+        const { data: publicUrlData } = supabase.storage.from("song-audio").getPublicUrl(path);
+        const { error: insertError } = await supabase.from("songs").insert({
+          creator_id: session.user.id,
+          title: songTitle.trim(),
+          description: songDescription.trim(),
+          genre: songGenre.trim(),
+          audio_path: path,
+          audio_url: publicUrlData.publicUrl,
+        });
+        if (insertError) {
+          await supabase.storage.from("song-audio").remove([path]);
+          throw insertError;
+        }
+        setSongTitle(""); setSongDescription(""); setSongGenre("");
+        setSongAudioFile(null); setSongAudioPreview("");
+        setAuthMode("");
+        await loadSongs();
+        showNotice("Your song has been uploaded!");
+      } else if (authMode === "sample") {
         if (!session?.user?.id) throw new Error("Log in to upload a sample.");
         if (!sampleAudioFile) throw new Error("Choose an audio file to upload.");
         const allowedTypes = ["audio/mpeg", "audio/mp3", "audio/wav", "audio/x-wav", "audio/mp4", "audio/aac", "audio/ogg", "audio/flac", "audio/webm"];
@@ -662,6 +722,7 @@ function App() {
 
           <a href="#producers">Producers</a>
 
+          <a href="#songs">Songs</a>
           <a href="#samples">Samples</a>
 
         </nav>
@@ -1318,6 +1379,74 @@ function App() {
 
 
 
+        <section className="song-library-section" id="songs">
+          <div className="section-heading song-library-heading">
+            <div>
+              <div className="eyebrow">THE PRODULA SONG LIBRARY</div>
+              <h2>New music. <span>Made by the community.</span></h2>
+              <p>Listen to original songs shared by artists on Produla.</p>
+            </div>
+            <button className="button button-dark" type="button" onClick={() => {
+              if (!session?.user) { setAuthMode("login"); setAuthError("Log in to upload your own music."); return; }
+              setAuthError(""); setAuthMode("song");
+            }}>Upload a song <span>↗</span></button>
+          </div>
+          <div className="song-library-controls">
+            <input aria-label="Search songs" type="search" placeholder="Search songs, artists or genres..." value={songSearch} onChange={(event) => setSongSearch(event.target.value)} />
+            <select aria-label="Filter songs by genre" value={songGenreFilter} onChange={(event) => setSongGenreFilter(event.target.value)}>
+              <option value="All">All genres</option>
+              {[...new Set(songs.map((song) => song.genre).filter(Boolean))].sort().map((genre) => <option key={genre} value={genre}>{genre}</option>)}
+            </select>
+          </div>
+          {songsLoading ? <div className="empty-state"><h3>Loading the song library...</h3></div> :
+            songs.filter((song) => {
+              const query = songSearch.trim().toLowerCase();
+              const searchable = [song.title, song.description, song.genre, song.creator?.display_name, song.creator?.username].join(" ").toLowerCase();
+              return (!query || searchable.includes(query)) && (songGenreFilter === "All" || song.genre === songGenreFilter);
+            }).length ? (
+              <div className="song-grid">
+                {songs.filter((song) => {
+                  const query = songSearch.trim().toLowerCase();
+                  const searchable = [song.title, song.description, song.genre, song.creator?.display_name, song.creator?.username].join(" ").toLowerCase();
+                  return (!query || searchable.includes(query)) && (songGenreFilter === "All" || song.genre === songGenreFilter);
+                }).map((song) => (
+                  <article className="song-card" key={song.id}>
+                    <div className="song-card-top">
+                      <span className="song-card-mark">♫</span>
+                      <span className="song-card-genre">{song.genre || "Independent release"}</span>
+                    </div>
+                    <h3>{song.title}</h3>
+                    <p className="song-card-artist">by {song.creator?.display_name || song.creator?.username || "Produla artist"}</p>
+                    {song.description && <p className="song-card-description">{song.description}</p>}
+                    <audio controls preload="none" src={song.audio_url}>Your browser does not support audio playback.</audio>
+                    <div className="song-card-footer">
+                      <span>{new Date(song.created_at).toLocaleDateString()}</span>
+                      {session?.user?.id === song.creator_id && (
+                        <button className="song-delete" type="button" onClick={async () => {
+                          const { error } = await supabase.from("songs").delete().eq("id", song.id).eq("creator_id", session.user.id);
+                          if (error) { showNotice(error.message || "Couldn't delete song."); return; }
+                          await supabase.storage.from("song-audio").remove([song.audio_path]);
+                          setSongs((current) => current.filter((item) => item.id !== song.id));
+                          showNotice("Song deleted.");
+                        }}>Delete your song</button>
+                      )}
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <div className="empty-state">
+                <div className="empty-state-icon">♫</div>
+                <h3>{songSearch || songGenreFilter !== "All" ? "No songs match that search." : "The first track is yours to share."}</h3>
+                <p>{songSearch || songGenreFilter !== "All" ? "Try another search or genre." : "When artists upload their music, everyone will be able to listen here."}</p>
+                <button className="button button-light" type="button" onClick={() => {
+                  if (!session?.user) { setAuthMode("login"); setAuthError("Log in to upload your own music."); }
+                  else { setAuthError(""); setAuthMode("song"); }
+                }}>Upload a song</button>
+              </div>
+            )}
+        </section>
+
         <section className="samples-section" id="samples">
           <div className="section-heading samples-heading">
             <div>
@@ -1502,7 +1631,7 @@ function App() {
 
 
             <h2>
-              {authMode === "sample" ? "Share a sound." : authMode === "request" ? "Post a song request." :
+              {authMode === "song" ? "Share your music." : authMode === "sample" ? "Share a sound." : authMode === "request" ? "Post a song request." :
                 authMode === "profile" ? "Your profile." :
                 authMode === "login" ? "Welcome back." : "Make something real."}
             </h2>
@@ -1510,7 +1639,7 @@ function App() {
 
 
             <p>
-              {authMode === "sample" ? "Add a sound to the Produla sample library." : authMode === "request" ? "Give producers an idea of the song you want to make." :
+              {authMode === "song" ? "Upload an original track for people to discover and listen to." : authMode === "sample" ? "Add a sound to the Produla sample library." : authMode === "request" ? "Give producers an idea of the song you want to make." :
                 authMode === "profile" ? "Make your Produla profile yours." :
                 authMode === "login" ? "Log in to continue making music together." :
                 "Create your Produla account to get started."}
@@ -1758,6 +1887,19 @@ function App() {
 
 
 
+              {authMode === "song" && (
+                <>
+                  <input type="text" placeholder="Song title" value={songTitle} onChange={(event) => setSongTitle(event.target.value)} minLength={2} maxLength={120} required />
+                  <textarea placeholder="A little about this track..." value={songDescription} onChange={(event) => setSongDescription(event.target.value)} maxLength={1200} rows={3} />
+                  <input type="text" placeholder="Genre (e.g. House, Pop, R&B)" value={songGenre} onChange={(event) => setSongGenre(event.target.value)} maxLength={60} />
+                  <label className="song-file-label">Your song file (MP3, WAV, M4A, AAC, OGG, FLAC or WebM · max 100 MB)
+                    <input type="file" accept="audio/*" onChange={(event) => { const file = event.target.files?.[0] || null; setSongAudioFile(file); setSongAudioPreview(file ? URL.createObjectURL(file) : ""); }} required />
+                  </label>
+                  {songAudioPreview && <audio className="song-upload-preview" controls src={songAudioPreview} />}
+                  <p className="song-upload-hint">Only upload music you created or have permission to share.</p>
+                </>
+              )}
+
               {authMode === "sample" && (
                 <>
                   <input type="text" placeholder="Sample name" value={sampleTitle} onChange={(event) => setSampleTitle(event.target.value)} minLength={3} maxLength={100} required />
@@ -1811,7 +1953,7 @@ function App() {
 
 
 
-              {authMode !== "profile" && authMode !== "request" && authMode !== "sample" && (
+              {authMode !== "profile" && authMode !== "request" && authMode !== "sample" && authMode !== "song" && (
 
                 <>
 
@@ -1887,6 +2029,8 @@ function App() {
 
                     ? "Save profile"
 
+                    : authMode === "song"
+                    ? "Upload song"
                     : authMode === "sample"
                     ? "Upload sample"
                     : authMode === "request"
@@ -1901,7 +2045,7 @@ function App() {
 
 
 
-            {authMode !== "profile" && authMode !== "request" && authMode !== "sample" && (
+            {authMode !== "profile" && authMode !== "request" && authMode !== "sample" && authMode !== "song" && (
 
               <button
 
