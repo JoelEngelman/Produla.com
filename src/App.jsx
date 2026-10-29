@@ -554,21 +554,11 @@ function App() {
 
               >
 
-                {(
-
-                  (session.user.name || session.user.email || "U")
-
-                    .trim()
-
-                    .split(/\s+/)
-
-                    .map((part) => part[0])
-
-                    .join("")
-
-                    .slice(0, 2)
-
-                ).toUpperCase()}
+<img
+                  src={`${import.meta.env.BASE_URL}produla-avatar.svg`}
+                  alt="Produla"
+                  className="brand-avatar-image"
+                />
 
               </button>
 
@@ -1030,19 +1020,11 @@ function App() {
 
                       <span className="artist-avatar">
 
-                        {(artist.display_name || artist.username || "A")
-
-                          .trim()
-
-                          .split(/\s+/)
-
-                          .map((part) => part[0])
-
-                          .join("")
-
-                          .slice(0, 2)
-
-                          .toUpperCase()}
+                        <img
+                          src={`${import.meta.env.BASE_URL}produla-avatar.svg`}
+                          alt="Produla"
+                          className="brand-avatar-image"
+                        />
 
                       </span>
 
