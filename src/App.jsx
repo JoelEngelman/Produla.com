@@ -21,6 +21,7 @@ function App() {
   const [requestFilter, setRequestFilter] = useState("All");
   const [artistSearch, setArtistSearch] = useState("");
   const [artistFilter, setArtistFilter] = useState("All");
+  const [selectedArtist, setSelectedArtist] = useState(null);
   const [requestTitle, setRequestTitle] = useState("");
   const [requestDescription, setRequestDescription] = useState("");
   const [requestGenre, setRequestGenre] = useState("");
@@ -1162,6 +1163,12 @@ function App() {
 
                     )}
 
+                    <button className="button button-light artist-view-profile" type="button" onClick={() => {
+                      setSelectedArtist(artist);
+                      window.history.replaceState(null, "", "#artist-" + encodeURIComponent(artist.username));
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}>View profile <span>↗</span></button>
+
                   </article>
 
                 );
@@ -1256,6 +1263,77 @@ function App() {
       </main>
 
 
+
+      {selectedArtist && (
+        <div className="artist-profile-overlay">
+          <section className="artist-profile-page" aria-label={`${selectedArtist.display_name || selectedArtist.username}'s profile`}>
+            <button className="artist-profile-back" type="button" onClick={() => {
+              setSelectedArtist(null);
+              window.history.replaceState(null, "", window.location.pathname + window.location.search);
+            }}>← Back to discover</button>
+            <div className={`artist-profile-hero${selectedArtist.id === PRODULA_CREATOR_ID ? " artist-profile-hero-creator" : ""}`}>
+              <div className="artist-profile-avatar">
+                <img src={`${import.meta.env.BASE_URL}produla-avatar.svg`} alt="Produla" />
+              </div>
+              <div className="eyebrow">{selectedArtist.id === PRODULA_CREATOR_ID ? "✦ PRODULA CREATOR" : "PRODULA ARTIST"}</div>
+              <h1>{selectedArtist.display_name || selectedArtist.username}</h1>
+              <p className="artist-profile-username">@{selectedArtist.username}</p>
+              <span className="artist-profile-type">{selectedArtist.artist_type === "both" ? "Singer · Producer" : selectedArtist.artist_type === "producer" ? "Producer" : "Singer"}</span>
+              {selectedArtist.bio && <p className="artist-profile-bio">{selectedArtist.bio}</p>}
+              {selectedArtist.genres?.length > 0 && <div className="artist-genres artist-profile-genres">{selectedArtist.genres.map((genre) => <span key={genre}>{genre}</span>)}</div>}
+              <div className="artist-profile-links">
+                {[
+                  ["Spotify", selectedArtist.spotify_url],
+                  ["Apple Music", selectedArtist.apple_music_url],
+                  ["SoundCloud", selectedArtist.soundcloud_url],
+                  ["YouTube", selectedArtist.youtube_url],
+                  ["Instagram", selectedArtist.instagram_url],
+                  ["TikTok", selectedArtist.tiktok_url],
+                ].filter(([, url]) => /^https?:\/\//i.test(url || "")).map(([label, url]) => (
+                  <a key={label} href={url} target="_blank" rel="noreferrer">{label} ↗</a>
+                ))}
+              </div>
+            </div>
+            <div className="artist-profile-requests">
+              <div className="eyebrow">COLLABORATE</div>
+              <h2>Song requests <span>from {selectedArtist.display_name || selectedArtist.username}.</span></h2>
+              {songRequests.filter((request) => request.author_id === selectedArtist.id).length ? (
+                <div className="request-grid">
+                  {songRequests.filter((request) => request.author_id === selectedArtist.id).map((request) => (
+                    <article className="request-card" key={request.id}>
+                      <div className="request-card-meta">
+                        <span className="request-tag">{request.looking_for}</span>
+                        {request.genre && <span className="request-genre">{request.genre}</span>}
+                      </div>
+                      <h3>{request.title}</h3>
+                      <p className="request-description">{request.description}</p>
+                      <span className="request-date">{new Date(request.created_at).toLocaleDateString()}</span>
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <div className="empty-state artist-profile-empty">
+                  <div className="empty-state-icon">♫</div>
+                  <h3>No song requests yet.</h3>
+                  <p>When this artist posts a collaboration idea, it will appear here.</p>
+                </div>
+              )}
+              {session?.user && session.user.id !== selectedArtist.id && (
+                <button className="button button-dark artist-profile-request-cta" type="button" onClick={() => {
+                  setRequestLookingFor(selectedArtist.artist_type === "producer" ? "Singer" : "Producer");
+                  setRequestTitle("");
+                  setRequestDescription("");
+                  setRequestGenre(selectedArtist.genres?.[0] || "");
+                  setSelectedArtist(null);
+                  setAuthError("");
+                  setAuthMode("request");
+                  window.history.replaceState(null, "", window.location.pathname + window.location.search);
+                }}>Start a collaboration request <span>↗</span></button>
+              )}
+            </div>
+          </section>
+        </div>
+      )}
 
       <footer className="footer">
 
