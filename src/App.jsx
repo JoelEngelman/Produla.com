@@ -16,6 +16,18 @@ function App() {
 
   const [publicProfiles, setPublicProfiles] = useState([]);
   const [songRequests, setSongRequests] = useState([]);
+  const [samples, setSamples] = useState([]);
+  const [samplesLoading, setSamplesLoading] = useState(true);
+  const [sampleSearch, setSampleSearch] = useState("");
+  const [sampleGenreFilter, setSampleGenreFilter] = useState("All");
+  const [sampleTitle, setSampleTitle] = useState("");
+  const [sampleDescription, setSampleDescription] = useState("");
+  const [sampleGenre, setSampleGenre] = useState("");
+  const [sampleTags, setSampleTags] = useState("");
+  const [samplePrice, setSamplePrice] = useState("0");
+  const [sampleAudioFile, setSampleAudioFile] = useState(null);
+  const [sampleAudioPreview, setSampleAudioPreview] = useState("");
+
   const [requestsLoading, setRequestsLoading] = useState(true);
   const [requestSearch, setRequestSearch] = useState("");
   const [requestFilter, setRequestFilter] = useState("All");
@@ -112,6 +124,33 @@ function App() {
   }
 
   useEffect(() => { loadSongRequests(); }, []);
+
+  async function loadSamples() {
+    setSamplesLoading(true);
+    const { data, error } = await supabase.from("samples")
+      .select("id, creator_id, title, description, genre, tags, price_cents, audio_url, created_at")
+      .order("created_at", { ascending: false }).limit(100);
+    if (error) {
+      console.error("Could not load samples:", error.message);
+      setSamplesLoading(false);
+      return;
+    }
+    const rows = data || [];
+    const creatorIds = [...new Set(rows.map((sample) => sample.creator_id))];
+    let creatorsById = {};
+    if (creatorIds.length) {
+      const { data: creators, error: creatorsError } = await supabase.from("artist_profiles")
+        .select("id, username, display_name, avatar_url").in("id", creatorIds);
+      if (creatorsError) console.error("Could not load sample creators:", creatorsError.message);
+      (creators || []).forEach((creator) => { creatorsById[creator.id] = creator; });
+    }
+    setSamples(rows.map((sample) => ({ ...sample, creator: creatorsById[sample.creator_id] || null })));
+    setSamplesLoading(false);
+  }
+
+  useEffect(() => { loadSamples(); }, []);
+
+
 
   const [session, setSession] = useState(null);
 
@@ -386,7 +425,39 @@ function App() {
 
     try {
 
-      if (authMode === "request") {
+      if (authMode === "sample") {
+        if (!session?.user?.id) throw new Error("Log in to upload a sample.");
+        if (!sampleAudioFile) throw new Error("Choose an audio file to upload.");
+        const allowedTypes = ["audio/mpeg", "audio/mp3", "audio/wav", "audio/x-wav", "audio/mp4", "audio/aac", "audio/ogg", "audio/flac", "audio/webm"];
+        if (!allowedTypes.includes(sampleAudioFile.type)) throw new Error("Choose an MP3, WAV, M4A, AAC, OGG, FLAC or WebM audio file.");
+        if (sampleAudioFile.size > 50 * 1024 * 1024) throw new Error("Your audio file must be 50 MB or smaller.");
+        const extension = (sampleAudioFile.name.split(".").pop() || "mp3").toLowerCase().replace(/[^a-z0-9]/g, "");
+        const path = `${session.user.id}/${crypto.randomUUID()}.${extension}`;
+        const { error: uploadError } = await supabase.storage.from("sample-audio").upload(path, sampleAudioFile, { contentType: sampleAudioFile.type, upsert: false });
+        if (uploadError) throw uploadError;
+        const { data: publicUrlData } = supabase.storage.from("sample-audio").getPublicUrl(path);
+        const price = Math.round(Number(samplePrice || 0) * 100);
+        const { error: insertError } = await supabase.from("samples").insert({
+          creator_id: session.user.id,
+          title: sampleTitle.trim(),
+          description: sampleDescription.trim(),
+          genre: sampleGenre.trim(),
+          tags: sampleTags.split(",").map((tag) => tag.trim()).filter(Boolean).slice(0, 10),
+          price_cents: price,
+          audio_path: path,
+          audio_url: publicUrlData.publicUrl,
+        });
+        if (insertError) {
+          await supabase.storage.from("sample-audio").remove([path]);
+          throw insertError;
+        }
+        setSampleTitle(""); setSampleDescription(""); setSampleGenre(""); setSampleTags("");
+        setSamplePrice("0"); setSampleAudioFile(null); setSampleAudioPreview("");
+        setAuthMode("");
+        await loadSamples();
+        showNotice("Your sample has been uploaded!");
+      } else if (authMode === "request") {
+
         if (!session?.user?.id) throw new Error("Log in to post a song request.");
         const { error } = await supabase.from("song_requests").insert({
           author_id: session.user.id,
@@ -1247,70 +1318,52 @@ function App() {
 
 
 
-        <section className="sample-banner" id="samples">
-
-          <div>
-
-            <div className="eyebrow">
-
-              A LITTLE SOMETHING TO START WITH
-
+        <section className="samples-section" id="samples">
+          <div className="section-heading samples-heading">
+            <div>
+              <div className="eyebrow">THE PRODULA SAMPLE LIBRARY</div>
+              <h2>Find a sound. <span>Make it yours.</span></h2>
+              <p>Loops, vocals, textures and ideas shared by the Produla community.</p>
             </div>
-
-            <h2>
-
-              Sometimes one sound
-
-              <br />
-
-              changes <span>everything.</span>
-
-            </h2>
-
-            <p>Find your next loop, vocal chop, or happy accident.</p>
-
-            <button
-
-              className="button button-dark"
-
-              onClick={() =>
-
-                showNotice("Sample uploads and purchases aren't available yet.")
-
-              }
-
-            >
-
-              Explore samples <span>↗</span>
-
-            </button>
-
+            <button className="button button-dark" type="button" onClick={() => {
+              if (!session?.user) { setAuthMode("login"); setAuthError("Log in to upload your own samples."); return; }
+              setAuthError(""); setAuthMode("sample");
+            }}>Upload a sample <span>↗</span></button>
           </div>
-
-
-
-          <div className="sample-graphic" aria-hidden="true">
-
-            {Array.from({ length: 45 }, (_, i) => (
-
-              <span
-
-                key={i}
-
-                style={{
-
-                  height: `${14 + Math.abs(Math.sin(i * 0.43)) * 105}px`,
-
-                }}
-
-              />
-
-            ))}
-
-            <div className="sample-play">▶</div>
-
+          <div className="sample-library-controls">
+            <input aria-label="Search samples" type="search" placeholder="Search samples, genres or tags..." value={sampleSearch} onChange={(event) => setSampleSearch(event.target.value)} />
+            <select aria-label="Filter samples by genre" value={sampleGenreFilter} onChange={(event) => setSampleGenreFilter(event.target.value)}>
+              <option value="All">All genres</option>
+              {[...new Set(samples.map((sample) => sample.genre).filter(Boolean))].sort().map((genre) => <option key={genre} value={genre}>{genre}</option>)}
+            </select>
           </div>
-
+          {samplesLoading ? <div className="empty-state"><h3>Loading the sample library...</h3></div> :
+            samples.filter((sample) => {
+              const query = sampleSearch.trim().toLowerCase();
+              const searchable = [sample.title, sample.description, sample.genre, ...(sample.tags || []), sample.creator?.display_name, sample.creator?.username].join(" ").toLowerCase();
+              return (!query || searchable.includes(query)) && (sampleGenreFilter === "All" || sample.genre === sampleGenreFilter);
+            }).length ? (
+              <div className="sample-grid">
+                {samples.filter((sample) => {
+                  const query = sampleSearch.trim().toLowerCase();
+                  const searchable = [sample.title, sample.description, sample.genre, ...(sample.tags || []), sample.creator?.display_name, sample.creator?.username].join(" ").toLowerCase();
+                  return (!query || searchable.includes(query)) && (sampleGenreFilter === "All" || sample.genre === sampleGenreFilter);
+                }).map((sample) => (
+                  <article className="sample-card" key={sample.id}>
+                    <div className="sample-card-top"><span className="sample-card-genre">{sample.genre || "Uncategorised"}</span><span className="sample-card-price">{sample.price_cents === 0 ? "Free" : `$${(sample.price_cents / 100).toFixed(2)}`}</span></div>
+                    <h3>{sample.title}</h3>
+                    {sample.description && <p>{sample.description}</p>}
+                    {sample.tags?.length > 0 && <div className="sample-card-tags">{sample.tags.map((tag) => <span key={tag}>{tag}</span>)}</div>}
+                    <audio controls preload="none" src={sample.audio_url}>Your browser does not support audio previews.</audio>
+                    <div className="sample-card-footer">
+                      <span>by {sample.creator?.display_name || sample.creator?.username || "Produla creator"}</span>
+                      <button className="button button-light" type="button" onClick={() => showNotice("Purchases are coming soon. No payment has been taken.")} disabled={sample.price_cents === 0}> {sample.price_cents === 0 ? "Free preview" : "Buy · Coming soon"} </button>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : <div className="empty-state"><div className="empty-state-icon">♫</div><h3>No samples found just yet.</h3><p>Try another search, or be the first to upload a sound.</p></div>}
+          <div className="sample-payments-note"><span>PAYMENTS COMING SOON</span><p>Sample prices are displayed for now. Checkout and creator payouts will be enabled in a future update.</p></div>
         </section>
 
       </main>
@@ -1449,7 +1502,7 @@ function App() {
 
 
             <h2>
-              {authMode === "request" ? "Post a song request." :
+              {authMode === "sample" ? "Share a sound." : authMode === "request" ? "Post a song request." :
                 authMode === "profile" ? "Your profile." :
                 authMode === "login" ? "Welcome back." : "Make something real."}
             </h2>
@@ -1457,7 +1510,7 @@ function App() {
 
 
             <p>
-              {authMode === "request" ? "Give producers an idea of the song you want to make." :
+              {authMode === "sample" ? "Add a sound to the Produla sample library." : authMode === "request" ? "Give producers an idea of the song you want to make." :
                 authMode === "profile" ? "Make your Produla profile yours." :
                 authMode === "login" ? "Log in to continue making music together." :
                 "Create your Produla account to get started."}
@@ -1704,6 +1757,22 @@ function App() {
 
 
 
+
+              {authMode === "sample" && (
+                <>
+                  <input type="text" placeholder="Sample name" value={sampleTitle} onChange={(event) => setSampleTitle(event.target.value)} minLength={3} maxLength={100} required />
+                  <textarea placeholder="Describe your sound..." value={sampleDescription} onChange={(event) => setSampleDescription(event.target.value)} maxLength={1000} rows={3} />
+                  <input type="text" placeholder="Genre (e.g. House, R&B, Pop)" value={sampleGenre} onChange={(event) => setSampleGenre(event.target.value)} maxLength={60} />
+                  <input type="text" placeholder="Tags, separated by commas" value={sampleTags} onChange={(event) => setSampleTags(event.target.value)} maxLength={300} />
+                  <label className="sample-file-label">Audio file (MP3, WAV, M4A, AAC, OGG, FLAC or WebM · max 50 MB)
+                    <input type="file" accept="audio/*" onChange={(event) => { const file = event.target.files?.[0] || null; setSampleAudioFile(file); setSampleAudioPreview(file ? URL.createObjectURL(file) : ""); }} required />
+                  </label>
+                  {sampleAudioPreview && <audio className="sample-upload-preview" controls src={sampleAudioPreview} />}
+                  <input type="number" placeholder="Price in AUD (0 for free)" value={samplePrice} onChange={(event) => setSamplePrice(event.target.value)} min="0" max="1000" step="0.01" required />
+                  <p className="sample-payment-hint">You can set a display price, but payments are not active yet. No one can purchase samples yet.</p>
+                </>
+              )}
+
               {authMode === "request" && (
                 <>
                   <input type="text" placeholder="Song idea or working title" value={requestTitle}
@@ -1742,7 +1811,7 @@ function App() {
 
 
 
-              {authMode !== "profile" && authMode !== "request" && (
+              {authMode !== "profile" && authMode !== "request" && authMode !== "sample" && (
 
                 <>
 
@@ -1818,6 +1887,8 @@ function App() {
 
                     ? "Save profile"
 
+                    : authMode === "sample"
+                    ? "Upload sample"
                     : authMode === "request"
                     ? "Post song request"
                     : authMode === "login"
@@ -1830,7 +1901,7 @@ function App() {
 
 
 
-            {authMode !== "profile" && authMode !== "request" && (
+            {authMode !== "profile" && authMode !== "request" && authMode !== "sample" && (
 
               <button
 
