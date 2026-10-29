@@ -30,6 +30,23 @@ function App() {
 
 
   useEffect(() => {
+    function syncArtistFromHash() {
+      const match = window.location.hash.match(/^#artist-(.+)$/);
+      if (!match) {
+        setSelectedArtist(null);
+        return;
+      }
+      let username = "";
+      try { username = decodeURIComponent(match[1]).toLowerCase(); } catch { return; }
+      const profile = publicProfiles.find((artist) => artist.username?.toLowerCase() === username);
+      if (profile) setSelectedArtist(profile);
+    }
+    syncArtistFromHash();
+    window.addEventListener("hashchange", syncArtistFromHash);
+    return () => window.removeEventListener("hashchange", syncArtistFromHash);
+  }, [publicProfiles]);
+
+  useEffect(() => {
 
     let active = true;
 
@@ -1165,7 +1182,7 @@ function App() {
 
                     <button className="button button-light artist-view-profile" type="button" onClick={() => {
                       setSelectedArtist(artist);
-                      window.history.replaceState(null, "", "#artist-" + encodeURIComponent(artist.username));
+                      window.location.hash = "artist-" + encodeURIComponent(artist.username);
                       window.scrollTo({ top: 0, behavior: "smooth" });
                     }}>View profile <span>↗</span></button>
 
@@ -1269,7 +1286,7 @@ function App() {
           <section className="artist-profile-page" aria-label={`${selectedArtist.display_name || selectedArtist.username}'s profile`}>
             <button className="artist-profile-back" type="button" onClick={() => {
               setSelectedArtist(null);
-              window.history.replaceState(null, "", window.location.pathname + window.location.search);
+              window.location.hash = "producers";
             }}>← Back to discover</button>
             <div className={`artist-profile-hero${selectedArtist.id === PRODULA_CREATOR_ID ? " artist-profile-hero-creator" : ""}`}>
               <div className="artist-profile-avatar">
