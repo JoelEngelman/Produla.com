@@ -1,6 +1,6 @@
 
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { supabase } from "./lib/supabase";
 
@@ -9,6 +9,85 @@ import "./App.css";
 
 
 const PRODULA_CREATOR_ID = "dafff309-26a8-4d42-8f34-2420c7914a89";
+
+
+function AudioPlayer({ src, onPlay, className = "", label = "Play audio" }) {
+  const audioRef = useRef(null);
+  const [playing, setPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+
+  function formatTime(value) {
+    if (!Number.isFinite(value)) return "0:00";
+    const minutes = Math.floor(value / 60);
+    const seconds = Math.floor(value % 60).toString().padStart(2, "0");
+    return `${minutes}:${seconds}`;
+  }
+
+  async function togglePlayback() {
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (audio.paused) {
+      try {
+        await audio.play();
+      } catch (error) {
+        console.error("Audio playback could not start:", error);
+      }
+    } else {
+      audio.pause();
+    }
+  }
+
+  function seek(event) {
+    const audio = audioRef.current;
+    if (!audio || !Number.isFinite(audio.duration)) return;
+    audio.currentTime = Number(event.target.value);
+    setCurrentTime(audio.currentTime);
+  }
+
+  return (
+    <div className={`audio-player ${className}`}>
+      <audio
+        ref={audioRef}
+        preload="none"
+        src={src}
+        onLoadedMetadata={(event) => setDuration(event.currentTarget.duration || 0)}
+        onDurationChange={(event) => setDuration(event.currentTarget.duration || 0)}
+        onTimeUpdate={(event) => setCurrentTime(event.currentTarget.currentTime || 0)}
+        onPlay={() => { setPlaying(true); onPlay?.(); }}
+        onPause={() => setPlaying(false)}
+        onEnded={() => { setPlaying(false); setCurrentTime(0); }}
+      />
+      <button
+        className={playing ? "audio-play-button audio-is-playing" : "audio-play-button"}
+        type="button"
+        onClick={togglePlayback}
+        aria-label={playing ? `Pause ${label.toLowerCase()}` : label}
+      >
+        <span aria-hidden="true">{playing ? "Ⅱ" : "▶"}</span>
+      </button>
+      <div className="audio-player-track">
+        <input
+          className="audio-seek"
+          type="range"
+          min="0"
+          max={duration || 0}
+          step="0.1"
+          value={Math.min(currentTime, duration || 0)}
+          onChange={seek}
+          disabled={!duration}
+          aria-label="Seek audio"
+          style={{ "--audio-progress": duration ? `${(currentTime / duration) * 100}%` : "0%" }}
+        />
+        <div className="audio-player-times">
+          <span>{formatTime(currentTime)}</span>
+          <span>{formatTime(duration)}</span>
+        </div>
+      </div>
+      <span className="audio-player-soundmark" aria-hidden="true"><i /><i /><i /><i /><i /></span>
+    </div>
+  );
+}
 
 function App() {
 
@@ -1420,7 +1499,7 @@ function App() {
                     <h3>{song.title}</h3>
                     <p className="song-card-artist">by {song.creator?.display_name || song.creator?.username || "Produla artist"}</p>
                     {song.description && <p className="song-card-description">{song.description}</p>}
-                    <audio controls preload="none" src={song.audio_url} onPlay={async () => {
+                    <AudioPlayer src={song.audio_url} label={`Play ${song.title}`} className="song-audio-player" onPlay={async () => {
                       if (songPlayLogged[song.id]) return;
                       setSongPlayLogged((current) => ({ ...current, [song.id]: true }));
                       const { error } = await supabase.from("song_plays").insert({ song_id: song.id });
@@ -1430,7 +1509,7 @@ function App() {
                       } else {
                         setSongs((current) => current.map((item) => item.id === song.id ? { ...item, play_count: (item.play_count || 0) + 1 } : item));
                       }
-                    }}>Your browser does not support audio playback.</audio>
+                    }} />
                     <div className="song-card-footer">
                       <span>{Number(song.play_count || 0).toLocaleString()} plays · {new Date(song.created_at).toLocaleDateString()}</span>
                       {session?.user?.id === song.creator_id && (
@@ -1504,7 +1583,7 @@ function App() {
                     <h3>{sample.title}</h3>
                     {sample.description && <p>{sample.description}</p>}
                     {sample.tags?.length > 0 && <div className="sample-card-tags">{sample.tags.map((tag) => <span key={tag}>{tag}</span>)}</div>}
-                    <audio controls preload="none" src={sample.audio_url}>Your browser does not support audio previews.</audio>
+                    <AudioPlayer src={sample.audio_url} label={`Preview ${sample.title}`} className="sample-audio-player" />
                     <div className="sample-card-footer">
                       <span>by {sample.creator?.display_name || sample.creator?.username || "Produla creator"}</span>
                       <button className="button button-light" type="button" onClick={() => showNotice("Purchases are coming soon. No payment has been taken.")} disabled={sample.price_cents === 0}> {sample.price_cents === 0 ? "Free preview" : "Buy · Coming soon"} </button>
@@ -1613,7 +1692,7 @@ function App() {
                                 {song.description && <p className="artist-release-description">{song.description}</p>}
                               </div>
                             </div>
-                            <audio controls preload="none" src={song.audio_url} onPlay={async () => {
+                            <AudioPlayer src={song.audio_url} label={`Play ${song.title}`} className="song-audio-player" onPlay={async () => {
                       if (songPlayLogged[song.id]) return;
                       setSongPlayLogged((current) => ({ ...current, [song.id]: true }));
                       const { error } = await supabase.from("song_plays").insert({ song_id: song.id });
@@ -1961,7 +2040,7 @@ function App() {
                   <label className="song-file-label">Your song file (MP3, WAV, M4A, AAC, OGG, FLAC or WebM · max 100 MB)
                     <input type="file" accept="audio/*" onChange={(event) => { const file = event.target.files?.[0] || null; setSongAudioFile(file); setSongAudioPreview(file ? URL.createObjectURL(file) : ""); }} required />
                   </label>
-                  {songAudioPreview && <audio className="song-upload-preview" controls src={songAudioPreview} />}
+                  {songAudioPreview && <AudioPlayer src={songAudioPreview} label="Preview your song" className="upload-audio-player song-upload-preview" />}
                   <p className="song-upload-hint">Only upload music you created or have permission to share.</p>
                 </>
               )}
@@ -1975,7 +2054,7 @@ function App() {
                   <label className="sample-file-label">Audio file (MP3, WAV, M4A, AAC, OGG, FLAC or WebM · max 50 MB)
                     <input type="file" accept="audio/*" onChange={(event) => { const file = event.target.files?.[0] || null; setSampleAudioFile(file); setSampleAudioPreview(file ? URL.createObjectURL(file) : ""); }} required />
                   </label>
-                  {sampleAudioPreview && <audio className="sample-upload-preview" controls src={sampleAudioPreview} />}
+                  {sampleAudioPreview && <AudioPlayer src={sampleAudioPreview} label="Preview your sample" className="upload-audio-player sample-upload-preview" />}
                   <input type="number" placeholder="Price in AUD (0 for free)" value={samplePrice} onChange={(event) => setSamplePrice(event.target.value)} min="0" max="1000" step="0.01" required />
                   <p className="sample-payment-hint">You can set a display price, but payments are not active yet. No one can purchase samples yet.</p>
                 </>
