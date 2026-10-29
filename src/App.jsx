@@ -20,6 +20,7 @@ function App() {
   const [samplesLoading, setSamplesLoading] = useState(true);
   const [songs, setSongs] = useState([]);
   const [songsLoading, setSongsLoading] = useState(true);
+  const [songPlayLogged, setSongPlayLogged] = useState({});
   const [songSearch, setSongSearch] = useState("");
   const [songGenreFilter, setSongGenreFilter] = useState("All");
   const [songTitle, setSongTitle] = useState("");
@@ -162,7 +163,7 @@ function App() {
   async function loadSongs() {
     setSongsLoading(true);
     const { data, error } = await supabase.from("songs")
-      .select("id, creator_id, title, description, genre, audio_path, audio_url, created_at")
+      .select("id, creator_id, title, description, genre, audio_path, audio_url, play_count, is_featured, created_at")
       .order("created_at", { ascending: false }).limit(100);
     if (error) {
       console.error("Could not load songs:", error.message);
@@ -1382,7 +1383,7 @@ function App() {
         <section className="song-library-section" id="songs">
           <div className="section-heading song-library-heading">
             <div>
-              <div className="eyebrow">THE PRODULA SONG LIBRARY</div>
+              <div className="eyebrow">RECENTLY UPLOADED · THE PRODULA SONG LIBRARY</div>
               <h2>New music. <span>Made by the community.</span></h2>
               <p>Listen to original songs shared by artists on Produla.</p>
             </div>
@@ -1414,14 +1415,33 @@ function App() {
                     <div className="song-card-top">
                       <span className="song-card-mark">♫</span>
                       <span className="song-card-genre">{song.genre || "Independent release"}</span>
+                      {song.is_featured && <span className="song-featured-label">Featured</span>}
                     </div>
                     <h3>{song.title}</h3>
                     <p className="song-card-artist">by {song.creator?.display_name || song.creator?.username || "Produla artist"}</p>
                     {song.description && <p className="song-card-description">{song.description}</p>}
-                    <audio controls preload="none" src={song.audio_url}>Your browser does not support audio playback.</audio>
+                    <audio controls preload="none" src={song.audio_url} onPlay={async () => {
+                      if (songPlayLogged[song.id]) return;
+                      setSongPlayLogged((current) => ({ ...current, [song.id]: true }));
+                      const { error } = await supabase.from("song_plays").insert({ song_id: song.id });
+                      if (error) {
+                        console.error("Couldn't record song play:", error.message);
+                        setSongPlayLogged((current) => { const next = { ...current }; delete next[song.id]; return next; });
+                      } else {
+                        setSongs((current) => current.map((item) => item.id === song.id ? { ...item, play_count: (item.play_count || 0) + 1 } : item));
+                      }
+                    }}>Your browser does not support audio playback.</audio>
                     <div className="song-card-footer">
-                      <span>{new Date(song.created_at).toLocaleDateString()}</span>
+                      <span>{Number(song.play_count || 0).toLocaleString()} plays · {new Date(song.created_at).toLocaleDateString()}</span>
                       {session?.user?.id === song.creator_id && (
+                        <>
+                        <button className="song-feature-toggle" type="button" onClick={async () => {
+                          const nextFeatured = !song.is_featured;
+                          const { error } = await supabase.from("songs").update({ is_featured: nextFeatured }).eq("id", song.id).eq("creator_id", session.user.id);
+                          if (error) { showNotice(error.message || "Couldn't update featured song."); return; }
+                          setSongs((current) => current.map((item) => item.id === song.id ? { ...item, is_featured: nextFeatured } : item));
+                          showNotice(nextFeatured ? "Song featured on your profile." : "Song removed from featured.");
+                        }}>{song.is_featured ? "Unfeature" : "Feature on profile"}</button>
                         <button className="song-delete" type="button" onClick={async () => {
                           const { error } = await supabase.from("songs").delete().eq("id", song.id).eq("creator_id", session.user.id);
                           if (error) { showNotice(error.message || "Couldn't delete song."); return; }
@@ -1429,6 +1449,7 @@ function App() {
                           setSongs((current) => current.filter((item) => item.id !== song.id));
                           showNotice("Song deleted.");
                         }}>Delete your song</button>
+                        </>
                       )}
                     </div>
                   </article>
@@ -1564,6 +1585,51 @@ function App() {
                   setAuthMode("request");
                   window.history.replaceState(null, "", window.location.pathname + window.location.search);
                 }}>Start a collaboration request <span>↗</span></button>
+
+              {(() => {
+                const artistSongs = songs.filter((song) => song.creator_id === selectedArtist.id);
+                const featuredSongs = artistSongs.filter((song) => song.is_featured);
+                const orderedSongs = [...featuredSongs, ...artistSongs.filter((song) => !song.is_featured)];
+                const totalPlays = artistSongs.reduce((total, song) => total + Number(song.play_count || 0), 0);
+                return (
+                  <div className="artist-discography">
+                    <div className="artist-discography-heading">
+                      <div><div className="eyebrow">THE MUSIC</div><h2>Releases <span>& plays.</span></h2></div>
+                      <div className="artist-music-stats">
+                        <span><strong>{artistSongs.length}</strong> {artistSongs.length === 1 ? "song" : "songs"}</span>
+                        <span><strong>{totalPlays.toLocaleString()}</strong> total plays</span>
+                      </div>
+                    </div>
+                    {orderedSongs.length ? (
+                      <div className="artist-discography-list">
+                        {orderedSongs.map((song) => (
+                          <article className={song.is_featured ? "artist-release artist-release-featured" : "artist-release"} key={song.id}>
+                            <div className="artist-release-info">
+                              <span className="artist-release-icon">♫</span>
+                              <div>
+                                <h3>{song.title} {song.is_featured && <span className="song-featured-label">Featured</span>}</h3>
+                                <p>{song.genre || "Independent release"} · {Number(song.play_count || 0).toLocaleString()} plays</p>
+                                {song.description && <p className="artist-release-description">{song.description}</p>}
+                              </div>
+                            </div>
+                            <audio controls preload="none" src={song.audio_url} onPlay={async () => {
+                      if (songPlayLogged[song.id]) return;
+                      setSongPlayLogged((current) => ({ ...current, [song.id]: true }));
+                      const { error } = await supabase.from("song_plays").insert({ song_id: song.id });
+                      if (error) {
+                        console.error("Couldn't record song play:", error.message);
+                        setSongPlayLogged((current) => { const next = { ...current }; delete next[song.id]; return next; });
+                      } else {
+                        setSongs((current) => current.map((item) => item.id === song.id ? { ...item, play_count: (item.play_count || 0) + 1 } : item));
+                      }
+                    }} />
+                          </article>
+                        ))}
+                      </div>
+                    ) : <div className="artist-discography-empty">No songs uploaded yet. Their releases will appear here.</div>}
+                  </div>
+                );
+              })()}
               )}
             </div>
           </section>
