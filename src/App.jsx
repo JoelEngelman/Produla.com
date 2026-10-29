@@ -1085,7 +1085,7 @@ function App() {
             </div>
 
           ) : (
-
+            <>
             <div className="artist-grid">
 
               {publicProfiles.filter((artist) => {
@@ -1240,6 +1240,7 @@ function App() {
                 <button className="button button-light" onClick={() => { setArtistSearch(""); setArtistFilter("All"); }}>Clear filters</button>
               </div>
             )}
+            </>
           )}
 
         </section>
