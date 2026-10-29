@@ -1585,6 +1585,7 @@ function App() {
                   setAuthMode("request");
                   window.history.replaceState(null, "", window.location.pathname + window.location.search);
                 }}>Start a collaboration request <span>↗</span></button>
+              )}
 
               {(() => {
                 const artistSongs = songs.filter((song) => song.creator_id === selectedArtist.id);
@@ -1630,7 +1631,6 @@ function App() {
                   </div>
                 );
               })()}
-              )}
             </div>
           </section>
         </div>
