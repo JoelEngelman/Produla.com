@@ -8,6 +8,8 @@ import "./App.css";
 
 
 
+const PRODULA_CREATOR_ID = "dafff309-26a8-4d42-8f34-2420c7914a89";
+
 function App() {
 
   const [notice, setNotice] = useState("");
@@ -92,6 +94,8 @@ function App() {
   const [session, setSession] = useState(null);
 
   const [sessionPending, setSessionPending] = useState(true);
+
+  const isCreatorAccount = session?.user?.id === PRODULA_CREATOR_ID;
 
 
 
@@ -544,7 +548,7 @@ function App() {
 
               <button
 
-                className="account-avatar"
+                className={`account-avatar${isCreatorAccount ? " account-avatar-creator" : ""}`}
 
                 title="Your profile"
 
@@ -870,7 +874,7 @@ function App() {
                   <p className="request-description">{request.description}</p>
                   <div className="request-card-footer">
                     <div>
-                      <strong>{request.author?.display_name || request.author?.username || "Produla artist"}</strong>
+                      <strong>{request.author?.display_name || request.author?.username || "Produla artist"}{request.author_id === PRODULA_CREATOR_ID && <span className="creator-inline-badge" title="Produla Creator" aria-label="Produla Creator">✦</span>}</strong>
                       <span>{request.author?.username ? "@" + request.author.username : "Artist"}</span>
                     </div>
                     <span className="request-date">{new Date(request.created_at).toLocaleDateString()}</span>
@@ -990,6 +994,8 @@ function App() {
 
               {publicProfiles.map((artist) => {
 
+                const isCreatorProfile = artist.id === PRODULA_CREATOR_ID;
+
                 const spotifyArtistId = (artist.spotify_url || "").match(
                   /open\.spotify\.com\/artist\/([A-Za-z0-9]+)/i
                 )?.[1];
@@ -1014,7 +1020,7 @@ function App() {
 
                 return (
 
-                  <article className="artist-card" key={artist.id}>
+                  <article className={`artist-card${isCreatorProfile ? " artist-card-creator" : ""}`} key={artist.id}>
 
                     <div className="artist-card-top">
 
@@ -1044,7 +1050,19 @@ function App() {
 
                     </div>
 
-                    <h3>{artist.display_name}</h3>
+                    <div className="artist-name-row">
+                      <h3>{artist.display_name}</h3>
+                      {isCreatorProfile && <span className="creator-badge"><span aria-hidden="true">✦</span> Produla Creator</span>}
+                    </div>
+                    {isCreatorProfile && (
+                      <div className="creator-profile-note">
+                        <span className="creator-note-icon" aria-hidden="true">✳</span>
+                        <div>
+                          <strong>Built from the first note</strong>
+                          <span>Official creator profile · Featured on Produla</span>
+                        </div>
+                      </div>
+                    )}
 
                     <p className="artist-username">@{artist.username}</p>
 
