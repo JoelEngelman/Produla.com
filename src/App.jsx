@@ -58,7 +58,7 @@ function App() {
 
         .from("artist_profiles")
 
-        .select("id, username, display_name, artist_type, bio, genres, spotify_url, apple_music_url, soundcloud_url, youtube_url, instagram_url, tiktok_url")
+        .select("id, username, display_name, artist_type, bio, genres, avatar_url, spotify_url, apple_music_url, soundcloud_url, youtube_url, instagram_url, tiktok_url")
 
         .order("created_at", { ascending: false })
 
@@ -220,6 +220,9 @@ function App() {
   const [profileInstagram, setProfileInstagram] = useState("");
 
   const [profileTikTok, setProfileTikTok] = useState("");
+  const [profileAvatarUrl, setProfileAvatarUrl] = useState("");
+  const [profileAvatarFile, setProfileAvatarFile] = useState(null);
+  const [profileAvatarPreview, setProfileAvatarPreview] = useState("");
 
 
 
@@ -272,6 +275,9 @@ function App() {
     setProfileInstagram("");
 
     setProfileTikTok("");
+    setProfileAvatarUrl("");
+    setProfileAvatarFile(null);
+    setProfileAvatarPreview("");
 
   }
 
@@ -332,6 +338,7 @@ function App() {
         setProfileInstagram(profile.instagram_url || "");
 
         setProfileTikTok(profile.tiktok_url || "");
+        setProfileAvatarUrl(profile.avatar_url || "");
 
       }
 
@@ -396,6 +403,18 @@ function App() {
 
 
 
+        let avatarUrl = profileAvatarUrl;
+        if (profileAvatarFile) {
+          if (!["image/jpeg", "image/png", "image/webp"].includes(profileAvatarFile.type)) throw new Error("Choose a JPG, PNG, or WebP image.");
+          if (profileAvatarFile.size > 5 * 1024 * 1024) throw new Error("Your profile picture must be 5 MB or smaller.");
+          const extension = profileAvatarFile.type === "image/png" ? "png" : profileAvatarFile.type === "image/webp" ? "webp" : "jpg";
+          const path = `${session.user.id}/avatar-${Date.now()}.${extension}`;
+          const { error: uploadError } = await supabase.storage.from("artist-avatars").upload(path, profileAvatarFile, { contentType: profileAvatarFile.type, upsert: true });
+          if (uploadError) throw uploadError;
+          const { data: publicUrlData } = supabase.storage.from("artist-avatars").getPublicUrl(path);
+          avatarUrl = publicUrlData.publicUrl;
+        }
+
         const { data: savedProfile, error } = await supabase
 
           .from("artist_profiles")
@@ -425,6 +444,7 @@ function App() {
             instagram_url: profileInstagram.trim(),
 
             tiktok_url: profileTikTok.trim(),
+            avatar_url: avatarUrl || null,
 
             updated_at: new Date().toISOString(),
 
@@ -581,7 +601,7 @@ function App() {
               >
 
 <img
-                  src={`${import.meta.env.BASE_URL}produla-avatar.svg`}
+                  src={publicProfiles.find((profile) => profile.id === session.user.id)?.avatar_url || `${import.meta.env.BASE_URL}produla-avatar.svg`}
                   alt="Produla"
                   className="brand-avatar-image"
                 />
@@ -1290,7 +1310,7 @@ function App() {
             }}>← Back to discover</button>
             <div className={`artist-profile-hero${selectedArtist.id === PRODULA_CREATOR_ID ? " artist-profile-hero-creator" : ""}`}>
               <div className="artist-profile-avatar">
-                <img src={`${import.meta.env.BASE_URL}produla-avatar.svg`} alt="Produla" />
+                <img src={selectedArtist.avatar_url || `${import.meta.env.BASE_URL}produla-avatar.svg`} alt={`${selectedArtist.display_name || selectedArtist.username} profile picture`}/>
               </div>
               <div className="eyebrow">{selectedArtist.id === PRODULA_CREATOR_ID ? "✦ PRODULA CREATOR" : "PRODULA ARTIST"}</div>
               <h1>{selectedArtist.display_name || selectedArtist.username}</h1>
@@ -1434,6 +1454,17 @@ function App() {
               {authMode === "profile" && (
 
                 <>
+
+                  <div className="profile-picture-editor">
+                    <img src={profileAvatarPreview || profileAvatarUrl || `${import.meta.env.BASE_URL}produla-avatar.svg`} alt="Profile picture preview" className="profile-picture-preview" />
+                    <label className="profile-picture-label">Profile picture (JPG, PNG or WebP, max 5 MB)
+                      <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => {
+                        const file = event.target.files?.[0] || null;
+                        setProfileAvatarFile(file);
+                        setProfileAvatarPreview(file ? URL.createObjectURL(file) : "");
+                      }} />
+                    </label>
+                  </div>
 
                   <input
 
