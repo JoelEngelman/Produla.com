@@ -863,3 +863,26 @@
 .sample-payment-hint { margin: 0; }
 @media (max-width: 900px) { .sample-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 640px) { .samples-section { padding: 76px 20px; } .samples-heading { align-items: flex-start; flex-direction: column; } .sample-library-controls { grid-template-columns: 1fr; } .sample-grid { grid-template-columns: 1fr; } }
+
+
+/* Produla song library */
+.song-library-section { padding: 104px 7.5%; background: #fbfaf7; }
+.song-library-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; }
+.song-library-controls { display: grid; grid-template-columns: minmax(0, 1fr) 220px; gap: 12px; margin: 30px 0; }
+.song-library-controls input, .song-library-controls select { width: 100%; min-width: 0; padding: 14px 16px; border: 1px solid #e5e2da; border-radius: 12px; background: #fff; color: #171714; font: inherit; }
+.song-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.song-card { min-width: 0; padding: 24px; border: 1px solid #e5e2da; border-radius: 18px; background: #fff; display: flex; flex-direction: column; gap: 12px; }
+.song-card-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.song-card-mark { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 13px; background: #fff0eb; color: #ff704f; font-size: 23px; }
+.song-card-genre { color: #77766e; font-size: 12px; }
+.song-card h3 { margin: 4px 0 0; font-size: 22px; overflow-wrap: anywhere; }
+.song-card-artist { margin: -6px 0 0; color: #ff704f; font-size: 13px; font-weight: 600; }
+.song-card-description { margin: 0; color: #77766e; font-size: 14px; line-height: 1.6; }
+.song-card audio, .song-upload-preview { width: 100%; margin-top: 8px; }
+.song-card-footer { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: auto; padding-top: 10px; color: #77766e; font-size: 12px; }
+.song-delete { border: 0; background: transparent; color: #a14b3a; font: inherit; cursor: pointer; }
+.song-file-label { display: grid; gap: 8px; color: #77766e; font-size: 13px; }
+.song-file-label input { width: 100%; }
+.song-upload-hint { margin: 0; color: #77766e; font-size: 13px; line-height: 1.6; }
+@media (max-width: 900px) { .song-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .song-library-section { padding: 76px 20px; } .song-library-heading { align-items: flex-start; flex-direction: column; } .song-library-controls { grid-template-columns: 1fr; } .song-grid { grid-template-columns: 1fr; } }
