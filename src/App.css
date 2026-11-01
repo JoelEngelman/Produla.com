@@ -1124,3 +1124,120 @@ button, a {
   .profile-stats-editor > div { grid-column: auto; }
   .artist-public-stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+
+/* Artist posts feed */
+.artist-posts-section {
+  margin: 42px 0 54px;
+  padding-top: 34px;
+  border-top: 1px solid #e5e2da;
+}
+.artist-posts-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 18px;
+  margin-bottom: 22px;
+}
+.artist-posts-heading h2 {
+  margin: 8px 0 0;
+  font-size: clamp(28px, 4vw, 42px);
+  letter-spacing: -.04em;
+}
+.artist-posts-heading h2 span {
+  color: #ff704f;
+  font-family: "Instrument Serif", serif;
+  font-weight: 400;
+}
+.artist-posts-count { color: #999287; font-size: 11px; }
+.artist-post-composer {
+  margin-bottom: 18px;
+  padding: 18px;
+  border: 1px solid #e5e2da;
+  border-radius: 17px;
+  background: #fffefa;
+  box-shadow: 0 8px 24px rgba(34,29,22,.025);
+}
+.artist-post-composer textarea {
+  display: block;
+  width: 100%;
+  min-height: 76px;
+  resize: vertical;
+  padding: 2px 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #171714;
+  font: inherit;
+  line-height: 1.65;
+}
+.artist-post-composer textarea::placeholder { color: #aaa49a; }
+.artist-post-composer:focus-within {
+  border-color: rgba(255,112,79,.55);
+  box-shadow: 0 0 0 4px rgba(255,112,79,.07);
+}
+.artist-post-composer-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #eee9e1;
+}
+.artist-post-composer-footer > span { color: #aaa49a; font-size: 10px; }
+.artist-post-composer-footer .button:disabled { opacity: .55; cursor: not-allowed; }
+.artist-post-list { display: grid; gap: 13px; }
+.artist-post-card {
+  padding: 20px 22px;
+  border: 1px solid #e9e4dc;
+  border-radius: 17px;
+  background: #fff;
+  animation: produla-card-enter .35s ease both;
+}
+.artist-post-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.artist-post-author { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.artist-post-author img { width: 36px; height: 36px; border-radius: 12px; object-fit: cover; }
+.artist-post-author div { display: grid; gap: 2px; min-width: 0; }
+.artist-post-author strong { color: #25231f; font-size: 12px; }
+.artist-post-author span, .artist-post-card time { color: #999287; font-size: 10px; }
+.artist-post-card > p {
+  margin: 18px 0 4px;
+  color: #45423c;
+  font-size: 14px;
+  line-height: 1.75;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.artist-post-delete {
+  margin-top: 10px;
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
+  color: #a14b3a;
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+.artist-post-delete:hover { text-decoration: underline; }
+.artist-posts-empty {
+  display: grid;
+  justify-items: center;
+  gap: 7px;
+  padding: 32px 18px;
+  border: 1px dashed #ded9cf;
+  border-radius: 16px;
+  color: #77766e;
+  text-align: center;
+}
+.artist-posts-empty > span { color: #ff896e; font-size: 23px; }
+.artist-posts-empty strong { color: #39362f; font-size: 13px; }
+.artist-posts-empty p { margin: 0; font-size: 12px; }
+@media (max-width: 600px) {
+  .artist-post-card { padding: 16px; }
+  .artist-posts-heading { align-items: flex-start; }
+}

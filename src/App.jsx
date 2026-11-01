@@ -146,6 +146,9 @@ function App() {
   const [artistSearch, setArtistSearch] = useState("");
   const [artistFilter, setArtistFilter] = useState("All");
   const [selectedArtist, setSelectedArtist] = useState(null);
+  const [artistPosts, setArtistPosts] = useState([]);
+  const [artistPostContent, setArtistPostContent] = useState("");
+  const [artistPostSubmitting, setArtistPostSubmitting] = useState(false);
   const [requestTitle, setRequestTitle] = useState("");
   const [requestDescription, setRequestDescription] = useState("");
   const [requestGenre, setRequestGenre] = useState("");
@@ -236,6 +239,53 @@ function App() {
   }
 
   useEffect(() => { loadSongRequests(); }, []);
+
+  async function loadArtistPosts() {
+    const { data, error } = await supabase.from("artist_posts")
+      .select("id, artist_id, content, created_at")
+      .order("created_at", { ascending: false }).limit(200);
+    if (error) {
+      console.error("Could not load artist posts:", error.message);
+      return;
+    }
+    setArtistPosts(data || []);
+  }
+
+  useEffect(() => { loadArtistPosts(); }, []);
+
+  async function createArtistPost() {
+    const content = artistPostContent.trim();
+    if (!session?.user?.id) {
+      showNotice("Log in to share a post.");
+      return;
+    }
+    if (!content || artistPostSubmitting) return;
+    setArtistPostSubmitting(true);
+    const { data, error } = await supabase.from("artist_posts")
+      .insert({ artist_id: session.user.id, content })
+      .select("id, artist_id, content, created_at")
+      .single();
+    setArtistPostSubmitting(false);
+    if (error) {
+      showNotice(error.message || "Couldn't publish your post.");
+      return;
+    }
+    setArtistPosts((current) => [data, ...current]);
+    setArtistPostContent("");
+    showNotice("Your post is live!");
+  }
+
+  async function deleteArtistPost(postId) {
+    if (!session?.user?.id) return;
+    const { error } = await supabase.from("artist_posts")
+      .delete().eq("id", postId).eq("artist_id", session.user.id);
+    if (error) {
+      showNotice(error.message || "Couldn't delete post.");
+      return;
+    }
+    setArtistPosts((current) => current.filter((post) => post.id !== postId));
+    showNotice("Post deleted.");
+  }
 
   async function loadSamples() {
     setSamplesLoading(true);
@@ -1709,6 +1759,61 @@ function App() {
                 {selectedArtist.stats_updated_at && <p className="artist-public-stats-updated">Last updated {new Date(selectedArtist.stats_updated_at).toLocaleDateString()}</p>}
               </div>
             )}
+            <div className="artist-posts-section">
+              <div className="artist-posts-heading">
+                <div>
+                  <div className="eyebrow">FROM THE ARTIST</div>
+                  <h2>Posts <span>& updates.</span></h2>
+                </div>
+                <span className="artist-posts-count">{artistPosts.filter((post) => post.artist_id === selectedArtist.id).length} updates</span>
+              </div>
+              {session?.user?.id === selectedArtist.id && (
+                <div className="artist-post-composer">
+                  <textarea
+                    value={artistPostContent}
+                    onChange={(event) => setArtistPostContent(event.target.value.slice(0, 1000))}
+                    placeholder="Share what you're working on..."
+                    maxLength={1000}
+                    rows={3}
+                    aria-label="Write an artist post"
+                  />
+                  <div className="artist-post-composer-footer">
+                    <span>{artistPostContent.length}/1000</span>
+                    <button className="button button-dark" type="button" onClick={createArtistPost} disabled={!artistPostContent.trim() || artistPostSubmitting}>
+                      {artistPostSubmitting ? "Posting..." : "Share post"}
+                    </button>
+                  </div>
+                </div>
+              )}
+              {artistPosts.filter((post) => post.artist_id === selectedArtist.id).length ? (
+                <div className="artist-post-list">
+                  {artistPosts.filter((post) => post.artist_id === selectedArtist.id).map((post) => (
+                    <article className="artist-post-card" key={post.id}>
+                      <div className="artist-post-card-top">
+                        <div className="artist-post-author">
+                          <img src={selectedArtist.avatar_url || `${import.meta.env.BASE_URL}produla-avatar.svg`} alt="" />
+                          <div>
+                            <strong>{selectedArtist.display_name || selectedArtist.username}</strong>
+                            <span>@{selectedArtist.username}</span>
+                          </div>
+                        </div>
+                        <time dateTime={post.created_at}>{new Date(post.created_at).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}</time>
+                      </div>
+                      <p>{post.content}</p>
+                      {session?.user?.id === selectedArtist.id && (
+                        <button className="artist-post-delete" type="button" onClick={() => deleteArtistPost(post.id)}>Delete post</button>
+                      )}
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <div className="artist-posts-empty">
+                  <span>✳</span>
+                  <strong>No posts yet.</strong>
+                  <p>Artist updates and announcements will show up here.</p>
+                </div>
+              )}
+            </div>
             <div className="artist-profile-requests">
               <div className="eyebrow">COLLABORATE</div>
               <h2>Song requests <span>from {selectedArtist.display_name || selectedArtist.username}.</span></h2>
