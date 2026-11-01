@@ -16,6 +16,7 @@ function AudioPlayer({ src, onPlay, className = "", label = "Play audio" }) {
   const [playing, setPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const audioGraphRef = useRef(null);
 
   function formatTime(value) {
     if (!Number.isFinite(value)) return "0:00";
@@ -29,6 +30,27 @@ function AudioPlayer({ src, onPlay, className = "", label = "Play audio" }) {
     if (!audio) return;
     if (audio.paused) {
       try {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass && !audioGraphRef.current) {
+          const context = new AudioContextClass();
+          const source = context.createMediaElementSource(audio);
+          const compressor = context.createDynamicsCompressor();
+          const gain = context.createGain();
+          gain.gain.value = 3.5;
+          compressor.threshold.value = -8;
+          compressor.knee.value = 18;
+          compressor.ratio.value = 12;
+          compressor.attack.value = 0.003;
+          compressor.release.value = 0.22;
+          source.connect(gain);
+          gain.connect(compressor);
+          compressor.connect(context.destination);
+          audioGraphRef.current = { context, source, gain, compressor };
+        }
+        if (audioGraphRef.current?.context.state === "suspended") {
+          await audioGraphRef.current.context.resume();
+        }
+        audio.volume = 1;
         await audio.play();
       } catch (error) {
         console.error("Audio playback could not start:", error);
@@ -50,6 +72,7 @@ function AudioPlayer({ src, onPlay, className = "", label = "Play audio" }) {
       <audio
         ref={audioRef}
         preload="none"
+        crossOrigin="anonymous"
         src={src}
         onLoadedMetadata={(event) => setDuration(event.currentTarget.duration || 0)}
         onDurationChange={(event) => setDuration(event.currentTarget.duration || 0)}
