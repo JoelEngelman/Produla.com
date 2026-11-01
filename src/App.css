@@ -1091,3 +1091,36 @@ button, a {
     transition-duration: .01ms !important;
   }
 }
+
+
+/* Artist audience statistics */
+.profile-stats-editor {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 10px 0 4px;
+  padding: 18px;
+  border: 1px solid #e5e2da;
+  border-radius: 15px;
+  background: #fbfaf7;
+}
+.profile-stats-editor > div { grid-column: 1 / -1; }
+.profile-stats-editor .eyebrow { color: #b95c46; font-size: 10px; font-weight: 700; letter-spacing: .12em; }
+.profile-stats-editor p { margin: 6px 0 2px; color: #77766e; font-size: 12px; line-height: 1.55; }
+.profile-stats-editor label { display: grid; gap: 6px; color: #55534c; font-size: 11px; }
+.profile-stats-editor input { width: 100%; min-width: 0; padding: 11px 12px; border: 1px solid #e5e2da; border-radius: 10px; background: #fff; color: #171714; font: inherit; }
+.profile-stats-editor input:focus { outline: none; border-color: rgba(255,112,79,.7); box-shadow: 0 0 0 3px rgba(255,112,79,.09); }
+.artist-public-stats { width: min(100%, 720px); margin-top: 28px; padding: 20px; border: 1px solid #e9e3da; border-radius: 18px; background: rgba(255,255,255,.72); }
+.artist-public-stats-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; }
+.artist-public-stats-heading > span:last-child { color: #999287; font-size: 10px; }
+.artist-public-stats-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.artist-public-stat { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; padding: 14px 8px; border-radius: 12px; background: #fbf8f3; }
+.artist-public-stat strong { color: #171714; font-size: clamp(18px, 3vw, 25px); letter-spacing: -.04em; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.artist-public-stat span { color: #5e5b53; font-size: 11px; text-align: center; }
+.artist-public-stat small { color: #a09a8e; font-size: 10px; }
+.artist-public-stats-updated { margin: 12px 0 0; color: #999287; font-size: 10px; }
+@media (max-width: 600px) {
+  .profile-stats-editor { grid-template-columns: 1fr; padding: 14px; }
+  .profile-stats-editor > div { grid-column: auto; }
+  .artist-public-stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

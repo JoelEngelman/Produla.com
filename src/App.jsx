@@ -182,7 +182,7 @@ function App() {
 
         .from("artist_profiles")
 
-        .select("id, username, display_name, artist_type, bio, genres, avatar_url, spotify_url, apple_music_url, soundcloud_url, youtube_url, instagram_url, tiktok_url")
+        .select("id, username, display_name, artist_type, bio, genres, avatar_url, spotify_url, apple_music_url, soundcloud_url, youtube_url, instagram_url, tiktok_url, spotify_monthly_listeners, spotify_followers, youtube_subscribers, soundcloud_followers, stats_updated_at")
 
         .order("created_at", { ascending: false })
 
@@ -398,6 +398,10 @@ function App() {
   const [profileGenres, setProfileGenres] = useState("");
 
   const [profileSpotify, setProfileSpotify] = useState("");
+  const [profileSpotifyMonthlyListeners, setProfileSpotifyMonthlyListeners] = useState("");
+  const [profileSpotifyFollowers, setProfileSpotifyFollowers] = useState("");
+  const [profileYoutubeSubscribers, setProfileYoutubeSubscribers] = useState("");
+  const [profileSoundcloudFollowers, setProfileSoundcloudFollowers] = useState("");
 
   const [profileAppleMusic, setProfileAppleMusic] = useState("");
 
@@ -453,6 +457,10 @@ function App() {
     setProfileGenres("");
 
     setProfileSpotify("");
+    setProfileSpotifyMonthlyListeners("");
+    setProfileSpotifyFollowers("");
+    setProfileYoutubeSubscribers("");
+    setProfileSoundcloudFollowers("");
 
     setProfileAppleMusic("");
 
@@ -516,6 +524,10 @@ function App() {
         setProfileGenres(Array.isArray(profile.genres) ? profile.genres.join(", ") : "");
 
         setProfileSpotify(profile.spotify_url || "");
+        setProfileSpotifyMonthlyListeners(profile.spotify_monthly_listeners == null ? "" : String(profile.spotify_monthly_listeners));
+        setProfileSpotifyFollowers(profile.spotify_followers == null ? "" : String(profile.spotify_followers));
+        setProfileYoutubeSubscribers(profile.youtube_subscribers == null ? "" : String(profile.youtube_subscribers));
+        setProfileSoundcloudFollowers(profile.soundcloud_followers == null ? "" : String(profile.soundcloud_followers));
 
         setProfileAppleMusic(profile.apple_music_url || "");
 
@@ -663,6 +675,18 @@ function App() {
           avatarUrl = publicUrlData.publicUrl;
         }
 
+        const parseOptionalStat = (value, label) => {
+          if (value === "") return null;
+          const parsed = Number(value);
+          if (!Number.isSafeInteger(parsed) || parsed < 0) throw new Error(`${label} must be a whole number of 0 or more.`);
+          return parsed;
+        };
+        const spotifyMonthlyListeners = parseOptionalStat(profileSpotifyMonthlyListeners, "Spotify monthly listeners");
+        const spotifyFollowers = parseOptionalStat(profileSpotifyFollowers, "Spotify followers");
+        const youtubeSubscribers = parseOptionalStat(profileYoutubeSubscribers, "YouTube subscribers");
+        const soundcloudFollowers = parseOptionalStat(profileSoundcloudFollowers, "SoundCloud followers");
+        const hasAudienceStats = [spotifyMonthlyListeners, spotifyFollowers, youtubeSubscribers, soundcloudFollowers].some((value) => value !== null);
+
         const { data: savedProfile, error } = await supabase
 
           .from("artist_profiles")
@@ -682,6 +706,11 @@ function App() {
             genres,
 
             spotify_url: profileSpotify.trim(),
+            spotify_monthly_listeners: spotifyMonthlyListeners,
+            spotify_followers: spotifyFollowers,
+            youtube_subscribers: youtubeSubscribers,
+            soundcloud_followers: soundcloudFollowers,
+            stats_updated_at: hasAudienceStats ? new Date().toISOString() : null,
 
             apple_music_url: profileAppleMusic.trim(),
 
@@ -1652,6 +1681,34 @@ function App() {
                 ))}
               </div>
             </div>
+            {[
+              ["Spotify monthly listeners", selectedArtist.spotify_monthly_listeners],
+              ["Spotify followers", selectedArtist.spotify_followers],
+              ["YouTube subscribers", selectedArtist.youtube_subscribers],
+              ["SoundCloud followers", selectedArtist.soundcloud_followers],
+            ].some(([, value]) => value !== null && value !== undefined) && (
+              <div className="artist-public-stats">
+                <div className="artist-public-stats-heading">
+                  <span className="eyebrow">AUDIENCE</span>
+                  <span>Artist-reported</span>
+                </div>
+                <div className="artist-public-stats-grid">
+                  {[
+                    ["Monthly listeners", selectedArtist.spotify_monthly_listeners, "Spotify"],
+                    ["Followers", selectedArtist.spotify_followers, "Spotify"],
+                    ["Subscribers", selectedArtist.youtube_subscribers, "YouTube"],
+                    ["Followers", selectedArtist.soundcloud_followers, "SoundCloud"],
+                  ].filter(([, value]) => value !== null && value !== undefined).map(([label, value, platform]) => (
+                    <div className="artist-public-stat" key={platform}>
+                      <strong>{Number(value).toLocaleString()}</strong>
+                      <span>{label}</span>
+                      <small>{platform}</small>
+                    </div>
+                  ))}
+                </div>
+                {selectedArtist.stats_updated_at && <p className="artist-public-stats-updated">Last updated {new Date(selectedArtist.stats_updated_at).toLocaleDateString()}</p>}
+              </div>
+            )}
             <div className="artist-profile-requests">
               <div className="eyebrow">COLLABORATE</div>
               <h2>Song requests <span>from {selectedArtist.display_name || selectedArtist.username}.</span></h2>
@@ -2047,6 +2104,17 @@ function App() {
                     }
 
                   />
+
+                  <div className="profile-stats-editor">
+                    <div>
+                      <span className="eyebrow">AUDIENCE STATS</span>
+                      <p>Enter the latest numbers from your artist dashboards. These figures are self-reported and won’t sync automatically.</p>
+                    </div>
+                    <label>Spotify monthly listeners<input type="number" min="0" step="1" inputMode="numeric" placeholder="e.g. 12500" value={profileSpotifyMonthlyListeners} onChange={(event) => setProfileSpotifyMonthlyListeners(event.target.value)} /></label>
+                    <label>Spotify followers<input type="number" min="0" step="1" inputMode="numeric" placeholder="e.g. 2400" value={profileSpotifyFollowers} onChange={(event) => setProfileSpotifyFollowers(event.target.value)} /></label>
+                    <label>YouTube subscribers<input type="number" min="0" step="1" inputMode="numeric" placeholder="e.g. 850" value={profileYoutubeSubscribers} onChange={(event) => setProfileYoutubeSubscribers(event.target.value)} /></label>
+                    <label>SoundCloud followers<input type="number" min="0" step="1" inputMode="numeric" placeholder="e.g. 600" value={profileSoundcloudFollowers} onChange={(event) => setProfileSoundcloudFollowers(event.target.value)} /></label>
+                  </div>
 
                 </>
 
