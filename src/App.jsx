@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import { supabase } from "./lib/supabase";
+import LiquidGlass from "./LiquidGlass";
 
 import "./App.css";
 
@@ -1188,6 +1189,7 @@ function App() {
               alt="Produla music artwork"
 
             />
+            <LiquidGlass imageSrc={`${import.meta.env.BASE_URL}header-art.jpg`} className="hero-liquid-glass" />
 
           </div>
 
@@ -1209,7 +1211,7 @@ function App() {
 
 
 
-        <section className="discover-section" id="discover">
+        <section className="discover-section photo-wash-section" id="discover" style={{ "--produla-bg-image": `url("${import.meta.env.BASE_URL}header-art.jpg")` }}>
 
           <div className="section-heading">
 
@@ -1318,7 +1320,7 @@ function App() {
 
 
 
-        <section className="producer-section" id="producers">
+        <section className="producer-section photo-wash-section" id="producers" style={{ "--produla-bg-image": `url("${import.meta.env.BASE_URL}header-art.jpg")` }}>
 
           <div className="section-heading">
 
@@ -1649,7 +1651,7 @@ function App() {
             )}
         </section>
 
-        <section className="samples-section" id="samples">
+        <section className="samples-section photo-wash-section" id="samples" style={{ "--produla-bg-image": `url("${import.meta.env.BASE_URL}header-art.jpg")` }}>
           <div className="section-heading samples-heading">
             <div>
               <div className="eyebrow">THE PRODULA SAMPLE LIBRARY</div>
