@@ -1365,3 +1365,43 @@ button, a {
     background: rgba(255,250,246,.94);
   }
 }
+
+
+/* One continuous artwork layer behind both collaboration sections. */
+.collaboration-wash {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: #f5f3ee;
+}
+.collaboration-wash::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  background-image: var(--produla-bg-image);
+  background-size: cover;
+  background-position: center 44%;
+  pointer-events: none;
+}
+.collaboration-wash::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  background: linear-gradient(115deg, rgba(245,243,238,.22), rgba(245,243,238,.12) 52%, rgba(255,240,232,.2));
+  pointer-events: none;
+}
+.collaboration-wash > * { position: relative; z-index: 1; }
+.collaboration-wash .photo-wash-section::before,
+.collaboration-wash .photo-wash-section::after { display: none; }
+.collaboration-wash .discover-section,
+.collaboration-wash .producer-section { background: transparent; }
+
+/* Remove decorative dashed outlines that looked like stray dotted lines. */
+.empty-state,
+.artist-discography-empty,
+.artist-posts-empty {
+  border-style: solid;
+  border-color: rgba(130, 117, 101, .22);
+}
