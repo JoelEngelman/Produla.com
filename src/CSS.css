@@ -1,11 +1,7 @@
-/*
-  Produla liquid glass
-  Uses the supplied #frosted SVG filter rendered by LiquidGlassEffect.jsx.
-  Applied to native buttons and button-like controls without changing their
-  labels, click handlers, dimensions, or existing colour themes.
-*/
+/* Visible liquid-glass finish for interactive controls. Keep the original sizing and colours. */
 .app-shell button,
 .app-shell [role="button"],
+.app-shell a.button,
 .app-shell .button,
 .app-shell .button-dark,
 .app-shell .button-light,
@@ -23,23 +19,28 @@
 .app-shell .request-delete,
 .app-shell .artist-profile-back,
 .app-shell .artist-post-delete {
-  -webkit-backdrop-filter: url("#frosted") blur(12px) saturate(145%);
-  backdrop-filter: url("#frosted") blur(12px) saturate(145%);
-  border-color: rgba(255, 255, 255, .42);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, .38),
-    inset 0 -1px 0 rgba(255, 255, 255, .10),
-    0 5px 18px rgba(35, 29, 22, .08);
+  position: relative;
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  backdrop-filter: blur(18px) saturate(180%);
+  border-color: rgba(255,255,255,.68);
+  background-image: linear-gradient(145deg, rgba(255,255,255,.38), rgba(255,255,255,.12) 48%, rgba(255,255,255,.24));
+  box-shadow: inset 0 1.5px 0 rgba(255,255,255,.82),
+              inset 0 -1px 0 rgba(255,255,255,.22),
+              0 5px 16px rgba(65,48,36,.13);
+  text-shadow: 0 1px 0 rgba(255,255,255,.18);
+  transition: box-shadow .2s ease, border-color .2s ease, filter .2s ease;
 }
 .app-shell button:hover,
-.app-shell [role="button"]:hover {
-  border-color: rgba(255, 255, 255, .72);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, .52),
-    0 8px 22px rgba(35, 29, 22, .12);
+.app-shell [role="button"]:hover,
+.app-shell a.button:hover {
+  border-color: rgba(255,255,255,.95);
+  box-shadow: inset 0 1.5px 0 rgba(255,255,255,.96),
+              inset 0 -1px 0 rgba(255,255,255,.3),
+              0 8px 22px rgba(65,48,36,.18);
+  filter: brightness(1.035);
 }
 .app-shell button:focus-visible,
 .app-shell [role="button"]:focus-visible {
-  outline: 2px solid rgba(255, 112, 79, .72);
+  outline: 2px solid rgba(255,112,79,.72);
   outline-offset: 3px;
 }

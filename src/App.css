@@ -907,7 +907,7 @@
 .artist-release p { margin: 0; color: #77766e; font-size: 12px; line-height: 1.5; }
 .artist-release .artist-release-description { margin-top: 5px; font-size: 13px; }
 .artist-release audio { width: min(300px, 42%); flex: 0 0 auto; }
-.artist-discography-empty { padding: 28px; border: 1px dashed #d9d5cc; border-radius: 15px; color: #77766e; text-align: center; }
+.artist-discography-empty { padding: 28px; border: 1px solid #d9d5cc; border-radius: 15px; color: #77766e; text-align: center; }
 @media (max-width: 640px) { .artist-discography-heading { align-items: flex-start; flex-direction: column; } .artist-music-stats { flex-wrap: wrap; } .artist-release { align-items: flex-start; flex-direction: column; } .artist-release audio { width: 100%; } }
 
 
@@ -1229,7 +1229,7 @@ button, a {
   justify-items: center;
   gap: 7px;
   padding: 32px 18px;
-  border: 1px dashed #ded9cf;
+  border: 1px solid #ded9cf;
   border-radius: 16px;
   color: #77766e;
   text-align: center;
