@@ -1243,8 +1243,7 @@ button, a {
 }
 
 
-/* Photo washes give the glass surfaces something real to refract.
-   Reuses the existing Produla header artwork; no external image request. */
+/* The generated peach liquid-glass artwork is used as a real section background. */
 .photo-wash-section {
   position: relative;
   isolation: isolate;
@@ -1258,8 +1257,8 @@ button, a {
   background-image: var(--produla-bg-image);
   background-size: cover;
   background-position: center 44%;
-  opacity: .105;
-  filter: saturate(.72) contrast(.92);
+  opacity: 1;
+  filter: saturate(1.02) contrast(1.01);
   pointer-events: none;
 }
 .photo-wash-section::after {
@@ -1267,7 +1266,7 @@ button, a {
   position: absolute;
   z-index: 0;
   inset: 0;
-  background: linear-gradient(115deg, rgba(245,243,238,.9), rgba(245,243,238,.78) 52%, rgba(255,240,232,.84));
+  background: linear-gradient(115deg, rgba(245,243,238,.22), rgba(245,243,238,.12) 52%, rgba(255,240,232,.2));
   pointer-events: none;
 }
 .photo-wash-section > * {
@@ -1304,5 +1303,5 @@ button, a {
 }
 
 @media (max-width: 640px) {
-  .photo-wash-section::before { opacity: .075; }
+  .photo-wash-section::before { opacity: 1; }
 }

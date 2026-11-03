@@ -1211,7 +1211,7 @@ function App() {
 
 
 
-        <section className="discover-section photo-wash-section" id="discover" style={{ "--produla-bg-image": `url("${import.meta.env.BASE_URL}header-art.jpg")` }}>
+        <section className="discover-section photo-wash-section" id="discover" style={{ "--produla-bg-image": `url("${import.meta.env.BASE_URL}produla-glass-waves.webp")` }}>
 
           <div className="section-heading">
 
@@ -1320,7 +1320,7 @@ function App() {
 
 
 
-        <section className="producer-section photo-wash-section" id="producers" style={{ "--produla-bg-image": `url("${import.meta.env.BASE_URL}header-art.jpg")` }}>
+        <section className="producer-section photo-wash-section" id="producers" style={{ "--produla-bg-image": `url("${import.meta.env.BASE_URL}produla-glass-waves.webp")` }}>
 
           <div className="section-heading">
 
@@ -1651,7 +1651,7 @@ function App() {
             )}
         </section>
 
-        <section className="samples-section photo-wash-section" id="samples" style={{ "--produla-bg-image": `url("${import.meta.env.BASE_URL}header-art.jpg")` }}>
+        <section className="samples-section photo-wash-section" id="samples" style={{ "--produla-bg-image": `url("${import.meta.env.BASE_URL}produla-glass-waves.webp")` }}>
           <div className="section-heading samples-heading">
             <div>
               <div className="eyebrow">THE PRODULA SAMPLE LIBRARY</div>
