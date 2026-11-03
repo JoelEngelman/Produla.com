@@ -1,18 +1,16 @@
-html,body{height:100%;min-height:500vh;margin:0;font-family:system-ui,sans-serif;overflow-x:hidden}
-.bg{position:absolute;inset:0;z-index:-1}
-.bg img{width:100%;display:block}
-
-.glass{
-  position:fixed;inset:50% auto auto 50%;transform:translate(-50%,-50%);
-  width:20rem;height:20rem;border-radius:50%;
-  background:rgba(255,255,255,.08);border:2px solid transparent;
-  box-shadow:0 0 0 2px rgba(255,255,255,.6),0 16px 32px rgba(0,0,0,.12);
-  backdrop-filter:url(#frosted);-webkit-backdrop-filter:url(#frosted);
-  display:grid;place-items:center;cursor:pointer;outline:0;
+/* Original frosted-glass filter, adapted from the supplied demo for Produla buttons */
+.button,
+.button-dark {
+  -webkit-backdrop-filter: url(#frosted) blur(12px) saturate(145%);
+  backdrop-filter: url(#frosted) blur(12px) saturate(145%);
+  border: 1px solid rgba(255,255,255,.58);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.42), inset 0 -1px 0 rgba(255,255,255,.12), 0 8px 24px rgba(35,29,22,.10);
+  isolation: isolate;
 }
-
-.glass::before,
-.glass::after{
-  content:"";position:absolute;width:40%;height:10px;background:#fff;border-radius:10px;
+.button:hover,
+.button-dark:hover {
+  border-color: rgba(255,255,255,.82);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.58), 0 11px 28px rgba(35,29,22,.14);
 }
-.glass::after{transform:rotate(90deg)}
+.button:focus-visible,
+.button-dark:focus-visible { outline: 2px solid rgba(255,112,79,.72); outline-offset: 3px; }
