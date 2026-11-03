@@ -1305,3 +1305,63 @@ button, a {
 @media (max-width: 640px) {
   .photo-wash-section::before { opacity: 1; }
 }
+
+
+/* Kube-inspired liquid glass: refracted backdrop, peach tint and polished glass edges. */
+.photo-wash-section .request-card,
+.photo-wash-section .artist-card,
+.photo-wash-section .sample-card {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.72);
+  border-radius: 22px;
+  background: linear-gradient(145deg, rgba(255,255,255,.58), rgba(255,247,242,.25) 48%, rgba(255,255,255,.38));
+  -webkit-backdrop-filter: blur(16px) saturate(1.42);
+  backdrop-filter: url(#produla-liquid-glass) blur(16px) saturate(1.42);
+  box-shadow: 0 14px 38px rgba(100,64,48,.10), inset 0 1px 0 rgba(255,255,255,.92), inset 0 -1px 0 rgba(255,255,255,.26);
+}
+.photo-wash-section .request-card::before,
+.photo-wash-section .artist-card::before,
+.photo-wash-section .sample-card::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(132deg, rgba(255,255,255,.76), transparent 28% 66%, rgba(255,255,255,.2)), radial-gradient(ellipse at 12% 0%, rgba(255,255,255,.56), transparent 48%);
+  pointer-events: none;
+}
+.photo-wash-section .request-card::after,
+.photo-wash-section .artist-card::after,
+.photo-wash-section .sample-card::after {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  inset: 1px;
+  border: 1px solid rgba(255,255,255,.42);
+  border-radius: inherit;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.62);
+  pointer-events: none;
+}
+.photo-wash-section .request-card:hover,
+.photo-wash-section .artist-card:hover,
+.photo-wash-section .sample-card:hover {
+  border-color: rgba(255,255,255,.94);
+  box-shadow: 0 20px 48px rgba(100,64,48,.15), inset 0 1px 0 rgba(255,255,255,.98), inset 0 -1px 0 rgba(255,255,255,.3);
+}
+.produla-svg-defs { position: absolute; width: 0; height: 0; overflow: hidden; pointer-events: none; }
+@supports not (backdrop-filter: url(#produla-liquid-glass)) {
+  .photo-wash-section .request-card,
+  .photo-wash-section .artist-card,
+  .photo-wash-section .sample-card { backdrop-filter: blur(16px) saturate(1.42); }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .photo-wash-section .request-card,
+  .photo-wash-section .artist-card,
+  .photo-wash-section .sample-card {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: rgba(255,250,246,.94);
+  }
+}
