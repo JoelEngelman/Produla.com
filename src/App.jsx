@@ -889,6 +889,16 @@ function App() {
 
     <div className="app-shell">
 
+      <div className="produla-svg-defs" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" style={{ position: "absolute" }}>
+          <filter id="produla-liquid-glass" x="-20%" y="-20%" width="140%" height="140%" colorInterpolationFilters="sRGB">
+            <feTurbulence type="fractalNoise" baseFrequency="0.012 0.018" numOctaves="2" seed="8" result="noise" />
+            <feGaussianBlur in="noise" stdDeviation="2" result="softNoise" />
+            <feDisplacementMap in="SourceGraphic" in2="softNoise" scale="13" xChannelSelector="R" yChannelSelector="G" />
+          </filter>
+        </svg>
+      </div>
+
       <header className="navbar">
 
         <a className="wordmark" href="#home" aria-label="Produla home">
@@ -1211,7 +1221,7 @@ function App() {
 
 
 
-        <section className="discover-section photo-wash-section" id="discover" style={{ "--produla-bg-image": `url("${import.meta.env.BASE_URL}produla-glass-waves.webp")` }}>
+        <section className="discover-section photo-wash-section" id="discover" style={{ "--produla-bg-image": `url("${import.meta.env.BASE_URL}Dreamy%20Peach%20Glass%20Waves.png")` }}>
 
           <div className="section-heading">
 
@@ -1320,7 +1330,7 @@ function App() {
 
 
 
-        <section className="producer-section photo-wash-section" id="producers" style={{ "--produla-bg-image": `url("${import.meta.env.BASE_URL}produla-glass-waves.webp")` }}>
+        <section className="producer-section photo-wash-section" id="producers" style={{ "--produla-bg-image": `url("${import.meta.env.BASE_URL}Dreamy%20Peach%20Glass%20Waves.png")` }}>
 
           <div className="section-heading">
 
@@ -1651,7 +1661,7 @@ function App() {
             )}
         </section>
 
-        <section className="samples-section photo-wash-section" id="samples" style={{ "--produla-bg-image": `url("${import.meta.env.BASE_URL}produla-glass-waves.webp")` }}>
+        <section className="samples-section photo-wash-section" id="samples" style={{ "--produla-bg-image": `url("${import.meta.env.BASE_URL}Dreamy%20Peach%20Glass%20Waves.png")` }}>
           <div className="section-heading samples-heading">
             <div>
               <div className="eyebrow">THE PRODULA SAMPLE LIBRARY</div>
