@@ -1221,7 +1221,8 @@ function App() {
 
 
 
-        <section className="discover-section photo-wash-section" id="discover" style={{ "--produla-bg-image": `url("${import.meta.env.BASE_URL}Dreamy%20Peach%20Glass%20Waves.png")` }}>
+        <div className="collaboration-wash" style={{ "--produla-bg-image": `url("${import.meta.env.BASE_URL}Dreamy%20Peach%20Glass%20Waves.png")` }}>
+          <section className="discover-section photo-wash-section" id="discover">
 
           <div className="section-heading">
 
@@ -1330,7 +1331,7 @@ function App() {
 
 
 
-        <section className="producer-section photo-wash-section" id="producers" style={{ "--produla-bg-image": `url("${import.meta.env.BASE_URL}Dreamy%20Peach%20Glass%20Waves.png")` }}>
+        <section className="producer-section photo-wash-section" id="producers">
 
           <div className="section-heading">
 
@@ -1572,6 +1573,8 @@ function App() {
         </section>
 
 
+
+        </div>
 
         <section className="song-library-section" id="songs">
           <div className="section-heading song-library-heading">
