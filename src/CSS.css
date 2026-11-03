@@ -1,16 +1,45 @@
-/* Original frosted-glass filter, adapted from the supplied demo for Produla buttons */
-.button,
-.button-dark {
-  -webkit-backdrop-filter: url(#frosted) blur(12px) saturate(145%);
-  backdrop-filter: url(#frosted) blur(12px) saturate(145%);
-  border: 1px solid rgba(255,255,255,.58);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.42), inset 0 -1px 0 rgba(255,255,255,.12), 0 8px 24px rgba(35,29,22,.10);
-  isolation: isolate;
+/*
+  Produla liquid glass
+  Uses the supplied #frosted SVG filter rendered by LiquidGlassEffect.jsx.
+  Applied to native buttons and button-like controls without changing their
+  labels, click handlers, dimensions, or existing colour themes.
+*/
+.app-shell button,
+.app-shell [role="button"],
+.app-shell .button,
+.app-shell .button-dark,
+.app-shell .button-light,
+.app-shell .login-button,
+.app-shell .filter-tab,
+.app-shell .marketplace-filters button,
+.app-shell .auth-close,
+.app-shell .auth-switch,
+.app-shell .account-avatar,
+.app-shell .profile-menu button,
+.app-shell .audio-play-button,
+.app-shell .sample-play,
+.app-shell .song-feature-toggle,
+.app-shell .song-delete,
+.app-shell .request-delete,
+.app-shell .artist-profile-back,
+.app-shell .artist-post-delete {
+  -webkit-backdrop-filter: url("#frosted") blur(12px) saturate(145%);
+  backdrop-filter: url("#frosted") blur(12px) saturate(145%);
+  border-color: rgba(255, 255, 255, .42);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .38),
+    inset 0 -1px 0 rgba(255, 255, 255, .10),
+    0 5px 18px rgba(35, 29, 22, .08);
 }
-.button:hover,
-.button-dark:hover {
-  border-color: rgba(255,255,255,.82);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.58), 0 11px 28px rgba(35,29,22,.14);
+.app-shell button:hover,
+.app-shell [role="button"]:hover {
+  border-color: rgba(255, 255, 255, .72);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .52),
+    0 8px 22px rgba(35, 29, 22, .12);
 }
-.button:focus-visible,
-.button-dark:focus-visible { outline: 2px solid rgba(255,112,79,.72); outline-offset: 3px; }
+.app-shell button:focus-visible,
+.app-shell [role="button"]:focus-visible {
+  outline: 2px solid rgba(255, 112, 79, .72);
+  outline-offset: 3px;
+}
