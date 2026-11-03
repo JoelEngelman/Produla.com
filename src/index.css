@@ -1660,3 +1660,75 @@ h2 {
   border: 0;
   border-radius: 12px;
 }
+
+
+/* Liquid-glass buttons inspired by the reference component library. */
+.button {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.78);
+  border-radius: 999px;
+  background:
+    linear-gradient(145deg, rgba(255,255,255,.78), rgba(255,255,255,.36) 52%, rgba(255,244,238,.52));
+  color: #292722;
+  -webkit-backdrop-filter: blur(18px) saturate(1.55);
+  backdrop-filter: blur(18px) saturate(1.55);
+  box-shadow:
+    0 7px 20px rgba(76, 54, 42, .09),
+    inset 0 1px 0 rgba(255,255,255,.96),
+    inset 0 -1px 0 rgba(255,255,255,.38);
+  text-shadow: 0 1px 0 rgba(255,255,255,.24);
+  transition: transform .28s cubic-bezier(.2,.75,.25,1),
+    box-shadow .28s ease, border-color .28s ease, background .28s ease;
+}
+.button::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(125deg, rgba(255,255,255,.72), transparent 42%, rgba(255,255,255,.16));
+  opacity: .9;
+  pointer-events: none;
+}
+.button:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255,255,255,.98);
+  background:
+    linear-gradient(145deg, rgba(255,255,255,.9), rgba(255,255,255,.48) 52%, rgba(255,239,231,.66));
+  box-shadow:
+    0 12px 28px rgba(76, 54, 42, .13),
+    inset 0 1px 0 rgba(255,255,255,1),
+    inset 0 -1px 0 rgba(255,255,255,.48);
+}
+.button:active { transform: translateY(0) scale(.975); }
+.button-dark {
+  border-color: rgba(255,255,255,.48);
+  background: linear-gradient(145deg, rgba(67,64,58,.88), rgba(29,28,25,.94));
+  color: #fffaf6;
+  text-shadow: 0 1px 5px rgba(0,0,0,.18);
+  box-shadow: 0 8px 22px rgba(32,28,23,.18), inset 0 1px 0 rgba(255,255,255,.3), inset 0 -1px 0 rgba(0,0,0,.14);
+}
+.button-dark::before {
+  background: linear-gradient(125deg, rgba(255,255,255,.28), transparent 48%, rgba(255,255,255,.06));
+}
+.button-dark:hover {
+  border-color: rgba(255,255,255,.78);
+  background: linear-gradient(145deg, rgba(91,86,78,.94), rgba(43,41,36,.96));
+  color: #fff;
+  box-shadow: 0 12px 28px rgba(32,28,23,.22), inset 0 1px 0 rgba(255,255,255,.4);
+}
+.button-light {
+  border-color: rgba(255,255,255,.84);
+  background: linear-gradient(145deg, rgba(255,255,255,.56), rgba(255,255,255,.2));
+  color: #292722;
+}
+.button-light:hover {
+  border-color: rgba(255,255,255,1);
+  background: linear-gradient(145deg, rgba(255,255,255,.82), rgba(255,255,255,.4));
+}
+@media (prefers-reduced-transparency: reduce) {
+  .button, .button-light { backdrop-filter: none; -webkit-backdrop-filter: none; background: #fffaf6; }
+  .button-dark { background: #292722; }
+}
