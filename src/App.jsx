@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 
 import { supabase } from "./lib/supabase";
-import LiquidGlass from "./LiquidGlass";
 
 import "./App.css";
 
@@ -1199,7 +1198,6 @@ function App() {
               alt="Produla music artwork"
 
             />
-            <LiquidGlass imageSrc={`${import.meta.env.BASE_URL}header-art.jpg`} className="hero-liquid-glass" />
 
           </div>
 
@@ -1207,15 +1205,11 @@ function App() {
 
 
 
-        <section className="ticker" aria-label="What Produla offers">
+        <section className="ticker" aria-label="About Produla">
 
-          <span>FIND YOUR SOUND</span><i>✳</i>
+          <a className="ticker-brand" href="#home">produla.</a>
 
-          <span>MEET YOUR PEOPLE</span><i>✳</i>
-
-          <span>MAKE SOMETHING REAL</span><i>✳</i>
-
-          <span>FIND YOUR SOUND</span>
+          <span className="ticker-tagline">Good music is better together.</span>
 
         </section>
 
