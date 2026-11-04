@@ -490,3 +490,48 @@ body {
 .toast {border:1px solid rgba(255,255,255,.24);-webkit-backdrop-filter:blur(24px) saturate(145%);backdrop-filter:blur(24px) saturate(145%);box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 18px 50px rgba(20,18,15,.2);}
 button:focus-visible,a:focus-visible {outline:3px solid rgba(255,112,79,.55);outline-offset:3px;}
 @media(prefers-reduced-motion:reduce){.button::after,.login-button::after,.artist-profile-back::after,.sample-play::after,.audio-play-button::after,.filter-tab::after,.marketplace-filters button::after{transition:none;}}
+
+
+/* CONTRAST PASS — keep the glass, make every control easy to see */
+:where(button,[role="button"],.button,.login-button,.filter-tab,.marketplace-filters button,
+.artist-profile-back,.auth-close,.profile-menu button,.sample-play,.audio-play-button) {
+  color:#292720;
+  text-shadow:none;
+}
+:where(button,[role="button"],.button,.login-button,.filter-tab,.marketplace-filters button,
+.artist-profile-back,.auth-close,.profile-menu button) {
+  background-color:rgba(255,255,255,.88);
+  border-color:rgba(95,83,66,.24);
+}
+.button-dark,.button-dark:hover,.sample-play,.audio-play-button,
+.filter-tab.selected,.marketplace-filters button.market-filter-active {
+  color:#fff !important;
+}
+.button-dark,.button-dark:hover {
+  background:linear-gradient(145deg,#34332d,#171714) !important;
+  border-color:rgba(23,23,20,.28);
+}
+.button-light,.login-button,.artist-profile-back,.filter-tab,
+.marketplace-filters button,.profile-menu button {
+  color:#292720 !important;
+}
+.button-light,.login-button,.artist-profile-back,.filter-tab,
+.marketplace-filters button {
+  background:linear-gradient(145deg,rgba(255,255,255,.96),rgba(244,241,234,.88)) !important;
+  border-color:rgba(95,83,66,.22);
+}
+.filter-tab.selected,.marketplace-filters button.market-filter-active {
+  background:linear-gradient(145deg,#34332d,#171714) !important;
+  border-color:#34332d;
+}
+.navbar .nav-links a,.navbar .login-button {color:#292720;}
+.navbar .nav-links a:hover {color:#171714;}
+.profile-menu button:hover,.auth-close:hover {color:#171714;background:rgba(255,255,255,.98);}
+button:disabled,.button:disabled,[aria-disabled="true"] {
+  opacity:.58;
+  cursor:not-allowed;
+}
+:where(button,[role="button"],a,input,select,textarea):focus-visible {
+  outline:3px solid rgba(190,73,48,.78);
+  outline-offset:3px;
+}
