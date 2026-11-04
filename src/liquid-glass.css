@@ -535,3 +535,143 @@ button:disabled,.button:disabled,[aria-disabled="true"] {
   outline:3px solid rgba(190,73,48,.78);
   outline-offset:3px;
 }
+
+
+/* TRUE LIQUID GLASS BUTTONS
+   Chromium uses the app's SVG displacement filter to refract the live backdrop.
+   Other browsers retain a polished frosted-glass fallback. */
+:where(
+  .button,
+  .login-button,
+  .artist-profile-back,
+  .sample-play,
+  .audio-play-button,
+  .filter-tab,
+  .marketplace-filters button,
+  .auth-close,
+  .profile-menu button
+) {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.78);
+  -webkit-backdrop-filter: blur(18px) saturate(165%);
+  backdrop-filter: blur(18px) saturate(165%);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.88),
+    inset 0 -1px 0 rgba(120,105,85,.12),
+    0 8px 24px rgba(40,32,20,.10);
+  transition:
+    transform .22s cubic-bezier(.2,.8,.2,1),
+    box-shadow .22s ease,
+    background .22s ease;
+}
+
+/* The reference demo's key ingredient: SVG displacement of what's behind the glass.
+   Keep this as a separate declaration so unsupported browsers don't lose the blur. */
+@supports (backdrop-filter: url("#produla-liquid-glass")) {
+  :where(
+    .button,
+    .login-button,
+    .artist-profile-back,
+    .sample-play,
+    .audio-play-button,
+    .filter-tab,
+    .marketplace-filters button,
+    .auth-close,
+    .profile-menu button
+  ) {
+    -webkit-backdrop-filter: url("#produla-liquid-glass");
+    backdrop-filter: url("#produla-liquid-glass");
+  }
+}
+
+.button-light,
+.login-button,
+.artist-profile-back,
+.filter-tab,
+.marketplace-filters button,
+.profile-menu button,
+.auth-close {
+  background: linear-gradient(
+    145deg,
+    rgba(255,255,255,.68),
+    rgba(255,255,255,.34)
+  ) !important;
+  border-color: rgba(255,255,255,.86) !important;
+  color: #292720 !important;
+}
+
+.button-dark,
+.button-dark:hover,
+.sample-play,
+.audio-play-button,
+.filter-tab.selected,
+.marketplace-filters button.market-filter-active {
+  background: linear-gradient(
+    145deg,
+    rgba(54,52,46,.92),
+    rgba(25,24,21,.86)
+  ) !important;
+  border-color: rgba(255,255,255,.42) !important;
+  color: #fff !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.32),
+    inset 0 -1px 0 rgba(0,0,0,.12),
+    0 9px 26px rgba(23,23,20,.20);
+}
+
+:where(
+  .button,
+  .login-button,
+  .artist-profile-back,
+  .sample-play,
+  .audio-play-button,
+  .filter-tab,
+  .marketplace-filters button,
+  .auth-close,
+  .profile-menu button
+):hover {
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.96),
+    0 13px 30px rgba(40,32,20,.14);
+}
+
+:where(
+  .button,
+  .login-button,
+  .artist-profile-back,
+  .sample-play,
+  .audio-play-button,
+  .filter-tab,
+  .marketplace-filters button,
+  .auth-close,
+  .profile-menu button
+):active {
+  transform: translateY(0) scale(.985);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .button-light,
+  .login-button,
+  .artist-profile-back,
+  .filter-tab,
+  .marketplace-filters button,
+  .profile-menu button,
+  .auth-close {
+    background: rgba(255,255,255,.96) !important;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .button-dark,
+  .sample-play,
+  .audio-play-button,
+  .filter-tab.selected,
+  .marketplace-filters button.market-filter-active {
+    background: #292720 !important;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
