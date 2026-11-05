@@ -1252,6 +1252,7 @@ button, a {
   overflow: hidden;
 }
 .photo-wash-section::before {
+  display: none;
   content: "";
   position: absolute;
   z-index: 0;
@@ -1264,6 +1265,7 @@ button, a {
   pointer-events: none;
 }
 .photo-wash-section::after {
+  display: none;
   content: "";
   position: absolute;
   z-index: 0;
@@ -1377,6 +1379,7 @@ button, a {
   background: #f5f3ee;
 }
 .collaboration-wash::before {
+  display: none;
   content: "";
   position: absolute;
   z-index: 0;
@@ -1387,6 +1390,7 @@ button, a {
   pointer-events: none;
 }
 .collaboration-wash::after {
+  display: none;
   content: "";
   position: absolute;
   z-index: 0;
