@@ -1411,3 +1411,49 @@ button, a {
   border-style: solid;
   border-color: rgba(130, 117, 101, .22);
 }
+
+
+/* Produla Tools page */
+.tools-page {
+  min-height: calc(100vh - 110px);
+  padding: clamp(64px, 9vw, 112px) 24px 76px;
+  background: #f5f3ee;
+}
+.tools-page-inner { width: min(1120px, 100%); margin: 0 auto; }
+.tools-page-intro { max-width: 690px; margin: 0 auto 54px; text-align: center; }
+.tools-page-intro .eyebrow { display: inline-flex; align-items: center; gap: 9px; }
+.tools-page-intro h1 { margin: 20px 0 16px; color: #171714; font-size: clamp(48px, 8vw, 82px); line-height: .98; letter-spacing: -.065em; }
+.tools-page-intro h1 span { color: #ff704f; font-family: "Instrument Serif", serif; font-weight: 400; font-style: italic; }
+.tools-page-intro > p { max-width: 570px; margin: 0 auto; color: #77766e; font-size: 15px; line-height: 1.8; }
+.tools-app-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.tools-app-card { position: relative; display: flex; flex-direction: column; min-height: 510px; padding: clamp(24px, 4vw, 38px); overflow: hidden; border: 1px solid #e5e2da; border-radius: 24px; background: #fffefa; box-shadow: 0 14px 40px rgba(34,29,22,.045); }
+.tools-app-studio { background: #24231f; border-color: #38362f; color: #fffaf4; }
+.tools-app-topline { display: flex; justify-content: space-between; align-items: center; gap: 12px; color: #8d887d; font-size: 10px; font-weight: 700; letter-spacing: .12em; }
+.tools-app-studio .tools-app-topline { color: #b5afa4; }
+.tools-app-status { padding: 7px 9px; border: 1px solid #e8e3d9; border-radius: 99px; color: #77766e; font-size: 9px; letter-spacing: .08em; }
+.tools-app-studio .tools-app-status { border-color: #555148; color: #d5cec2; }
+.tools-app-symbol { display: grid; place-items: center; width: 62px; height: 62px; margin: 42px 0 22px; border-radius: 19px; background: #fff0eb; color: #25231f; font-family: "Instrument Serif", serif; font-size: 42px; }
+.tools-app-symbol span { color: #ff704f; }
+.tools-studio-mark { display: flex; align-items: center; justify-content: center; gap: 4px; width: 62px; height: 62px; margin: 42px 0 22px; border: 1px solid #514d43; border-radius: 19px; background: linear-gradient(145deg,#3b3932,#292822); color: #ff987e; }
+.tools-studio-mark span { margin-right: 3px; font-size: 23px; }
+.tools-studio-mark i { width: 3px; height: 12px; border-radius: 3px; background: #ff987e; }
+.tools-studio-mark i:nth-of-type(2), .tools-studio-mark i:nth-of-type(4) { height: 21px; }
+.tools-studio-mark i:nth-of-type(3) { height: 28px; }
+.tools-app-card h2 { margin: 0 0 12px; font-size: clamp(34px, 4vw, 44px); letter-spacing: -.055em; }
+.tools-app-card h2 em { color: #ff704f; font-family: "Instrument Serif", serif; font-weight: 400; }
+.tools-app-lead { margin: 0 0 12px; color: #292720; font-size: 16px; font-weight: 650; line-height: 1.5; }
+.tools-app-studio .tools-app-lead { color: #fffaf4; }
+.tools-app-card > p:not(.tools-app-lead) { margin: 0; color: #77766e; font-size: 13px; line-height: 1.8; }
+.tools-app-studio > p:not(.tools-app-lead) { color: #c1bbaf; }
+.tools-app-card ul { display: grid; gap: 11px; margin: 24px 0 28px; padding: 0; list-style: none; }
+.tools-app-card li { position: relative; padding-left: 20px; color: #4f4b43; font-size: 12px; line-height: 1.5; }
+.tools-app-studio li { color: #e0dacf; }
+.tools-app-card li::before { content: "↗"; position: absolute; left: 0; color: #ff704f; }
+.tools-app-foot { margin-top: auto; padding-top: 18px; border-top: 1px solid #ece8df; color: #999287; font-size: 9px; font-weight: 700; letter-spacing: .12em; }
+.tools-app-studio .tools-app-foot { border-color: #48453d; color: #aaa396; }
+.tools-page-note { display: flex; justify-content: space-between; gap: 16px; margin-top: 26px; color: #999287; font-size: 9px; font-weight: 700; letter-spacing: .13em; }
+@media (max-width: 760px) {
+  .tools-app-grid { grid-template-columns: 1fr; }
+  .tools-app-card { min-height: 0; }
+  .tools-page-note { flex-direction: column; }
+}
