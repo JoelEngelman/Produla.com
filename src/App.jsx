@@ -115,6 +115,7 @@ function AudioPlayer({ src, onPlay, className = "", label = "Play audio" }) {
 function App() {
 
   const [notice, setNotice] = useState("");
+  const [showToolsPage, setShowToolsPage] = useState(false);
 
   const [publicProfiles, setPublicProfiles] = useState([]);
   const [songRequests, setSongRequests] = useState([]);
@@ -988,7 +989,7 @@ function App() {
 
       <header id="produla-navbar" className="navbar">
 
-        <a className="wordmark" href="#home" aria-label="Produla home">
+        <a className="wordmark" href="#home" aria-label="Produla home" onClick={() => setShowToolsPage(false)}>
 
           produla<span>.</span>
 
@@ -998,12 +999,13 @@ function App() {
 
         <nav className="nav-links" aria-label="Main navigation">
 
-          <a className="nav-active" href="#discover">Discover</a>
+          <a className={!showToolsPage ? "nav-active" : ""} href="#discover" onClick={() => setShowToolsPage(false)}>Discover</a>
 
-          <a href="#producers">Producers</a>
+          <a href="#producers" onClick={() => setShowToolsPage(false)}>Producers</a>
 
-          <a href="#songs">Songs</a>
-          <a href="#samples">Samples</a>
+          <a href="#songs" onClick={() => setShowToolsPage(false)}>Songs</a>
+          <a href="#samples" onClick={() => setShowToolsPage(false)}>Samples</a>
+          <a className={showToolsPage ? "nav-active" : ""} href="#tools" onClick={(event) => { event.preventDefault(); setShowToolsPage(true); window.scrollTo({ top: 0, behavior: "smooth" }); }}>Produla Tools</a>
 
         </nav>
 
@@ -1198,6 +1200,42 @@ function App() {
 
 
       <main id="home">
+        {showToolsPage ? (
+          <section className="tools-page">
+            <div className="tools-page-inner">
+              <div className="tools-page-intro">
+                <span className="eyebrow"><span className="live-dot" /> THE PRODULA ECOSYSTEM</span>
+                <h1>More room for<br /><span>your sound.</span></h1>
+                <p>Produla is growing beyond the website. Meet the two official apps being built to help artists connect, create and bring their music to life.</p>
+              </div>
+
+              <div className="tools-app-grid">
+                <article className="tools-app-card tools-app-platform">
+                  <div className="tools-app-topline"><span className="tools-app-number">01 / CONNECT</span><span className="tools-app-status">OFFICIAL APP</span></div>
+                  <div className="tools-app-symbol">p<span>.</span></div>
+                  <h2>Produla <em>App</em></h2>
+                  <p className="tools-app-lead">Everything you know from Produla. In an app.</p>
+                  <p>Discover singers and producers, share music, find collaborators and keep up with the community — with the same familiar Produla experience in a dedicated app.</p>
+                  <ul><li>Find artists and collaborators</li><li>Explore songs, samples and requests</li><li>Manage your profile and music community</li></ul>
+                  <span className="tools-app-foot">THE PRODULA PLATFORM, WHEREVER YOU ARE</span>
+                </article>
+
+                <article className="tools-app-card tools-app-studio">
+                  <div className="tools-app-topline"><span className="tools-app-number">02 / CREATE</span><span className="tools-app-status">OFFICIAL APP</span></div>
+                  <div className="tools-studio-mark"><span>♫</span><i /><i /><i /><i /><i /></div>
+                  <h2>Produla <em>Studio</em></h2>
+                  <p className="tools-app-lead">A creative workspace built around making music.</p>
+                  <p>A new kind of music production app, bringing DAW-style tools together with features made for both producers and singers — from the first idea to the finished recording.</p>
+                  <ul><li>Music production and recording tools</li><li>Creative tools for singers and vocalists</li><li>A workspace for building, shaping and sharing ideas</li></ul>
+                  <span className="tools-app-foot">MAKE SOMETHING THAT SOUNDS LIKE YOU</span>
+                </article>
+              </div>
+              <div className="tools-page-note"><span>ONE CREATIVE COMMUNITY.</span><span>TWO WAYS TO MAKE MORE.</span></div>
+            </div>
+          </section>
+        ) : (
+          <>
+
 
         <section className="hero">
 
@@ -1794,6 +1832,8 @@ function App() {
           <div className="sample-payments-note"><span>PAYMENTS COMING SOON</span><p>Sample prices are displayed for now. Checkout and creator payouts will be enabled in a future update.</p></div>
         </section>
 
+          </>
+        )}
       </main>
 
 
