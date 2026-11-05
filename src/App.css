@@ -674,8 +674,10 @@
   gap: 6px;
 }
 .marketplace-filters button {
-  min-height: 36px;
-  padding: 0 13px;
+  min-height: 58px;
+  padding: 16px 28px;
+  font-size: 15px;
+  border-radius: 18px;
   border: 1px solid var(--line);
   border-radius: 999px;
   background: transparent;
@@ -696,7 +698,7 @@
   .marketplace-toolbar { align-items: stretch; }
   .marketplace-search { max-width: none; flex-basis: 100%; }
   .marketplace-filters { gap: 5px; }
-  .marketplace-filters button { padding: 0 10px; font-size: 10px; }
+  .marketplace-filters button { min-height: 54px; padding: 14px 20px; font-size: 14px; }
 }
 
 
