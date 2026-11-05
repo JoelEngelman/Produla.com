@@ -942,11 +942,11 @@ function App() {
         .navbar {
           position: relative;
           z-index: 10;
-          background: rgba(255,255,255,.10);
+          background: rgba(255,255,255,.08);
           border: 2px solid transparent;
           box-shadow: 0 0 0 2px rgba(255,255,255,.6), 0 16px 32px rgba(0,0,0,.12);
-          -webkit-backdrop-filter: url("#produla-navbar-glass") blur(1px) saturate(1.35);
-          backdrop-filter: url("#produla-navbar-glass") blur(1px) saturate(1.35);
+          -webkit-backdrop-filter: blur(16px);
+          backdrop-filter: blur(16px);
         }
         /* Temporary size boost so the liquid-glass finish is easy to inspect. */
         :where(button.button, a.button, .login-button, .auth-submit, button[type="submit"], .artist-profile-back, .nav-cta) {
