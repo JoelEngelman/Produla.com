@@ -888,15 +888,73 @@ function App() {
 
     <div className="app-shell">
 
-      <div className="produla-svg-defs" aria-hidden="true">
-        <svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" style={{ position: "absolute" }}>
-          <filter id="produla-liquid-glass" x="-20%" y="-20%" width="140%" height="140%" colorInterpolationFilters="sRGB">
-            <feTurbulence type="fractalNoise" baseFrequency="0.012 0.018" numOctaves="2" seed="8" result="noise" />
-            <feGaussianBlur in="noise" stdDeviation="2" result="softNoise" />
-            <feDisplacementMap in="SourceGraphic" in2="softNoise" scale="13" xChannelSelector="R" yChannelSelector="G" />
+      <style>{`
+        /* Loaded here so the effect is active even though the standalone CSS file was not imported. */
+        :where(button, [role="button"], input[type="button"], input[type="submit"], a.button, a.login-button, a.artist-profile-back) {
+          border: 1px solid rgba(255,255,255,.76);
+          background-color: rgba(255,255,255,.38);
+          -webkit-backdrop-filter: blur(16px) saturate(160%);
+          backdrop-filter: blur(16px) saturate(160%);
+          box-shadow: inset 0 1px 0 rgba(255,255,255,.82), inset 0 -1px 0 rgba(120,105,85,.10), 0 7px 22px rgba(40,32,20,.09);
+          transition: transform .2s cubic-bezier(.2,.8,.2,1), box-shadow .2s ease, background-color .2s ease;
+        }
+        /* SVG backdrop refraction, matching the reference demo's filter approach. */
+        :where(button, [role="button"], input[type="button"], input[type="submit"], a.button, a.login-button, a.artist-profile-back) {
+          -webkit-backdrop-filter: url("#produla-liquid-glass");
+          backdrop-filter: url("#produla-liquid-glass");
+        }
+        :where(button, [role="button"], input[type="button"], input[type="submit"], a.button, a.login-button, a.artist-profile-back):not(.button-dark):not(.sample-play):not(.audio-play-button):not(.selected):not(.market-filter-active) {
+          background-image: linear-gradient(145deg, rgba(255,255,255,.72), rgba(255,255,255,.32));
+          color: #292720;
+        }
+        :where(.button-dark, .sample-play, .audio-play-button, .filter-tab.selected, .marketplace-filters button.market-filter-active) {
+          background-image: linear-gradient(145deg, rgba(54,52,46,.91), rgba(25,24,21,.82));
+          background-color: rgba(35,33,29,.72);
+          border-color: rgba(255,255,255,.42);
+          color: #fff;
+          box-shadow: inset 0 1px 0 rgba(255,255,255,.30), inset 0 -1px 0 rgba(0,0,0,.12), 0 9px 25px rgba(23,23,20,.18);
+        }
+        :where(button, [role="button"], input[type="button"], input[type="submit"], a.button, a.login-button, a.artist-profile-back):hover:not(:disabled):not([aria-disabled="true"]) {
+          transform: translateY(-1px);
+          box-shadow: inset 0 1px 0 rgba(255,255,255,.94), 0 12px 28px rgba(40,32,20,.13);
+        }
+        :where(button, [role="button"], input[type="button"], input[type="submit"], a.button, a.login-button, a.artist-profile-back):active:not(:disabled):not([aria-disabled="true"]) {
+          transform: translateY(0) scale(.985);
+        }
+        :where(button, [role="button"], input[type="button"], input[type="submit"], a.button, a.login-button, a.artist-profile-back):focus-visible {
+          outline: 3px solid rgba(190,73,48,.72);
+          outline-offset: 3px;
+        }
+        @media (prefers-reduced-transparency: reduce) {
+          :where(button, [role="button"], input[type="button"], input[type="submit"], a.button, a.login-button, a.artist-profile-back) {
+            -webkit-backdrop-filter: none;
+            backdrop-filter: none;
+            background-image: none;
+            background-color: rgba(255,255,255,.96);
+          }
+          :where(.button-dark, .sample-play, .audio-play-button, .filter-tab.selected, .marketplace-filters button.market-filter-active) {
+            background-color: #292720;
+            color: #fff;
+          }
+        }
+      `}</style>
+      <svg
+        className="produla-svg-defs"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+        focusable="false"
+        width="1"
+        height="1"
+        style={{ position: "fixed", left: "-2px", top: "-2px", overflow: "hidden", pointerEvents: "none" }}
+      >
+        <defs>
+          <filter id="produla-liquid-glass" x="-20%" y="-20%" width="140%" height="140%" filterUnits="objectBoundingBox" primitiveUnits="objectBoundingBox" colorInterpolationFilters="sRGB">
+            <feTurbulence type="fractalNoise" baseFrequency="0.045 0.065" numOctaves="2" seed="8" result="glass-map" />
+            <feGaussianBlur in="SourceGraphic" stdDeviation="0.018" result="glass-blur" />
+            <feDisplacementMap in="glass-blur" in2="glass-map" scale="1.4" xChannelSelector="R" yChannelSelector="G" />
           </filter>
-        </svg>
-      </div>
+        </defs>
+      </svg>
 
       <header className="navbar">
 
