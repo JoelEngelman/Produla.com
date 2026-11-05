@@ -937,6 +937,19 @@ function App() {
             color: #fff;
           }
         }
+
+        /* Temporary size boost so the liquid-glass finish is easy to inspect. */
+        :where(button.button, a.button, .login-button, .auth-submit, button[type="submit"], .artist-profile-back, .nav-cta) {
+          min-height: 58px;
+          padding: 16px 28px;
+          font-size: 15px;
+          border-radius: 16px;
+        }
+        :where(.sample-card-footer .button, .artist-post-composer-footer .button) {
+          min-height: 54px;
+          padding: 14px 22px;
+          font-size: 14px;
+        }
       `}</style>
       <svg
         className="produla-svg-defs"
