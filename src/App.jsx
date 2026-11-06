@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import { supabase } from "./lib/supabase";
+import Studio from "./Studio";
 
 import "./App.css";
 
@@ -116,6 +117,7 @@ function App() {
 
   const [notice, setNotice] = useState("");
   const [showToolsPage, setShowToolsPage] = useState(false);
+  const [showStudioPage, setShowStudioPage] = useState(false);
 
   const [publicProfiles, setPublicProfiles] = useState([]);
   const [songRequests, setSongRequests] = useState([]);
@@ -1005,7 +1007,8 @@ function App() {
 
           <a href="#songs" onClick={() => setShowToolsPage(false)}>Songs</a>
           <a href="#samples" onClick={() => setShowToolsPage(false)}>Samples</a>
-          <a className={showToolsPage ? "nav-active" : ""} href="#tools" onClick={(event) => { event.preventDefault(); setShowToolsPage(true); window.scrollTo({ top: 0, behavior: "smooth" }); }}>Produla Tools</a>
+          <a className={showToolsPage ? "nav-active" : ""} href="#tools" onClick={(event) => { event.preventDefault(); setShowStudioPage(false); setShowToolsPage(true); window.scrollTo({ top: 0, behavior: "smooth" }); }}>Produla Tools</a>
+          <a className={showStudioPage ? "nav-active" : ""} href="#studio" onClick={(event) => { event.preventDefault(); setShowToolsPage(false); setShowStudioPage(true); window.scrollTo({ top: 0, behavior: "smooth" }); }}>Studio</a>
 
         </nav>
 
@@ -1200,7 +1203,7 @@ function App() {
 
 
       <main id="home">
-        {showToolsPage ? (
+        {showStudioPage ? <Studio onBack={() => setShowStudioPage(false)} /> : showToolsPage ? (
           <section className="tools-page">
             <div className="tools-page-inner">
               <div className="tools-page-intro">
@@ -1227,6 +1230,7 @@ function App() {
                   <p className="tools-app-lead">A creative workspace built around making music.</p>
                   <p>A new kind of music production app, bringing DAW-style tools together with features made for both producers and singers — from the first idea to the finished recording.</p>
                   <ul><li>Music production and recording tools</li><li>Creative tools for singers and vocalists</li><li>A workspace for building, shaping and sharing ideas</li></ul>
+                  <button className="tools-studio-launch" type="button" onClick={() => { setShowToolsPage(false); setShowStudioPage(true); window.scrollTo({ top: 0, behavior: "smooth" }); }}>Open Studio <span>↗</span></button>
                   <span className="tools-app-foot">MAKE SOMETHING THAT SOUNDS LIKE YOU</span>
                 </article>
               </div>
