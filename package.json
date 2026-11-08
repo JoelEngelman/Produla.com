@@ -1,17 +1,17 @@
 {
-  "name": "my-website",
+  "name": "produla-studio",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "desktop": "vite build && electron-builder",
-    "desktop:win": "vite build && electron-builder --win nsis portable",
-    "desktop:mac": "vite build && electron-builder --mac dmg",
-    "desktop:linux": "vite build && electron-builder --linux AppImage deb"
+    "desktop": "vite build && electron-builder --publish never",
+    "desktop:win": "vite build && electron-builder --win nsis portable --publish never",
+    "desktop:mac": "vite build && electron-builder --mac dmg --publish never",
+    "desktop:linux": "vite build && electron-builder --linux AppImage deb --publish never"
   },
   "dependencies": {
     "react": "^19.2.8",
@@ -80,5 +80,9 @@
       ],
       "category": "AudioVideo;Audio"
     }
+  },
+  "author": {
+    "name": "Joel Engelman",
+    "email": "joeldavidengelman@hotmail.com"
   }
 }
