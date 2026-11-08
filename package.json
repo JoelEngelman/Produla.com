@@ -8,8 +8,8 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "desktop": "vite build && electron-builder --win nsis portable --publish never",
-    "desktop:win": "vite build && electron-builder --win nsis portable --publish never"
+    "desktop": "vite build --base=./ && electron-builder --win nsis portable --publish never",
+    "desktop:win": "vite build --base=./ && electron-builder --win nsis portable --publish never"
   },
   "dependencies": {
     "react": "^19.2.8",
