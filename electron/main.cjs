@@ -6,7 +6,7 @@ function createWindow() {
     backgroundColor: "#171815", title: "Produla Studio",
     webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true }
   });
-  win.loadFile(path.join(__dirname, "..", "dist", "index.html"));
+  win.loadFile(path.join(__dirname, "..", "dist", "index.html"), { query: { studio: "1" } });
   win.webContents.setWindowOpenHandler(({ url }) => {
     if (url.startsWith("https://") || url.startsWith("http://")) shell.openExternal(url);
     return { action: "deny" };

@@ -8,10 +8,8 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "desktop": "vite build && electron-builder --publish never",
-    "desktop:win": "vite build && electron-builder --win nsis portable --publish never",
-    "desktop:mac": "vite build && electron-builder --mac dmg --publish never",
-    "desktop:linux": "vite build && electron-builder --linux AppImage deb --publish never"
+    "desktop": "vite build && electron-builder --win nsis portable --publish never",
+    "desktop:win": "vite build && electron-builder --win nsis portable --publish never"
   },
   "dependencies": {
     "react": "^19.2.8",
@@ -66,19 +64,6 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true
-    },
-    "mac": {
-      "target": [
-        "dmg"
-      ],
-      "category": "public.app-category.music"
-    },
-    "linux": {
-      "target": [
-        "AppImage",
-        "deb"
-      ],
-      "category": "AudioVideo;Audio"
     }
   },
   "author": {

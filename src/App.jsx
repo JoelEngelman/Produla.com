@@ -117,7 +117,7 @@ function App() {
 
   const [notice, setNotice] = useState("");
   const [showToolsPage, setShowToolsPage] = useState(false);
-  const [showStudioPage, setShowStudioPage] = useState(false);
+  const [showStudioPage, setShowStudioPage] = useState(() => new URLSearchParams(window.location.search).get("studio") === "1");
 
   const [publicProfiles, setPublicProfiles] = useState([]);
   const [songRequests, setSongRequests] = useState([]);
