@@ -1621,3 +1621,161 @@ a:not(.navbar a) { transition: color .25s ease, opacity .25s ease; }
     transition-duration: .01ms !important;
   }
 }
+
+/* Refined Produla authentication modal */
+.auth-overlay {
+  padding: 22px;
+  background:
+    radial-gradient(ellipse at 18% 12%, rgba(255, 145, 116, .20), transparent 38%),
+    rgba(24, 22, 19, .58);
+  -webkit-backdrop-filter: blur(12px) saturate(1.12);
+  backdrop-filter: blur(12px) saturate(1.12);
+  animation: produla-auth-fade .22s ease both;
+}
+
+.auth-modal {
+  max-width: 448px;
+  padding: 44px 42px 34px;
+  border: 1px solid rgba(255,255,255,.88);
+  border-radius: 27px;
+  background:
+    radial-gradient(ellipse at 100% 0%, rgba(255, 218, 205, .56), transparent 42%),
+    linear-gradient(145deg, #fffefa 0%, #f8f4ed 100%);
+  box-shadow: 0 34px 100px rgba(0,0,0,.24), inset 0 1px 0 rgba(255,255,255,.95);
+  animation: produla-auth-arrive .38s cubic-bezier(.2,.8,.2,1) both;
+}
+
+.auth-modal h2 {
+  margin: 0 38px 11px 0;
+  font-family: "DM Sans", sans-serif;
+  font-size: clamp(30px, 5vw, 36px);
+  font-weight: 650;
+  line-height: 1.08;
+  letter-spacing: -.055em;
+}
+
+.auth-modal > p {
+  max-width: 330px;
+  margin: 0 0 27px;
+  color: #777168;
+  font-size: 13px;
+  line-height: 1.75;
+}
+
+.auth-close {
+  top: 17px;
+  right: 18px;
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgba(45,39,32,.08);
+  background: rgba(255,255,255,.58);
+  color: #6e675e;
+  font-size: 23px;
+}
+.auth-close:hover {
+  border-color: rgba(255,112,79,.22);
+  background: #ffede6;
+  color: #d85e43;
+}
+
+.auth-modal form {
+  gap: 13px;
+}
+
+.auth-modal input,
+.auth-modal input[type="text"],
+.auth-modal input[type="email"],
+.auth-modal input[type="password"] {
+  height: 52px;
+  padding: 0 16px;
+  border: 1px solid #e7e0d7;
+  border-radius: 13px;
+  background: rgba(255,255,255,.78);
+  color: #25221e;
+  font-size: 13px;
+  box-shadow: inset 0 1px 2px rgba(43,34,25,.025);
+}
+.auth-modal input::placeholder { color: #aaa197; }
+.auth-modal input:hover { border-color: #d8cfc3; }
+.auth-modal input:focus {
+  border-color: #ff896e;
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(255,112,79,.11);
+}
+
+#root .auth-modal .auth-submit.button.button-dark,
+#root .auth-modal button[type="submit"] {
+  min-height: 54px;
+  margin-top: 3px;
+  padding: 14px 20px;
+  border: 1px solid #24211d;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #24221e, #11110f);
+  color: #fffaf4;
+  font-family: "DM Sans", sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .01em;
+  box-shadow: 0 8px 18px rgba(32,28,23,.13), inset 0 1px 0 rgba(255,255,255,.12);
+  cursor: pointer;
+}
+#root .auth-modal .auth-submit.button.button-dark:hover:not(:disabled),
+#root .auth-modal button[type="submit"]:hover:not(:disabled) {
+  border-color: #f17b5e;
+  background: linear-gradient(135deg, #ff9478, #ff704f);
+  color: #211d19;
+  box-shadow: 0 12px 24px rgba(255,112,79,.22);
+  transform: translateY(-2px);
+}
+#root .auth-modal .auth-submit:disabled {
+  opacity: .62;
+  cursor: wait;
+  transform: none;
+}
+
+#root .auth-modal .auth-switch {
+  min-height: 44px;
+  margin-top: 14px;
+  padding: 10px 13px;
+  border: 1px solid rgba(255,112,79,.18);
+  border-radius: 12px;
+  background: rgba(255,238,231,.56);
+  color: #a95743;
+  font-size: 12px;
+  font-weight: 650;
+  transition: background .22s ease, border-color .22s ease, color .22s ease, transform .22s ease;
+}
+#root .auth-modal .auth-switch:hover {
+  border-color: rgba(255,112,79,.4);
+  background: #ffebe3;
+  color: #873f30;
+  transform: translateY(-1px);
+}
+
+.auth-modal .auth-error {
+  margin: 0;
+  padding: 11px 13px;
+  border: 1px solid rgba(190,65,54,.18);
+  border-radius: 11px;
+  background: #fff0ed;
+  color: #a43d32;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+@keyframes produla-auth-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes produla-auth-arrive {
+  from { opacity: 0; transform: translateY(13px) scale(.975); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (max-width: 520px) {
+  .auth-modal { padding: 39px 24px 25px; border-radius: 23px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .auth-overlay, .auth-modal { animation: none !important; }
+}
+
