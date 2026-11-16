@@ -1011,7 +1011,7 @@ function App() {
           <a href="#samples" onClick={() => { setShowToolsPage(false); setShowStudioPage(false); setShowReleasesPage(false); }}>Samples</a>
           <a className={showToolsPage ? "nav-active" : ""} href="#tools" onClick={(event) => { event.preventDefault(); setShowStudioPage(false); setShowReleasesPage(false); setShowToolsPage(true); window.scrollTo({ top: 0, behavior: "smooth" }); }}>Produla Tools</a>
           <a className={showStudioPage ? "nav-active" : ""} href="#studio" onClick={(event) => { event.preventDefault(); setShowToolsPage(false); setShowReleasesPage(false); setShowStudioPage(true); window.scrollTo({ top: 0, behavior: "smooth" }); }}>Studio</a>
-          <a className={showReleasesPage ? "nav-active" : ""} href="#releases" onClick={(event) => { event.preventDefault(); setShowToolsPage(false); setShowStudioPage(false); setShowReleasesPage(true); window.scrollTo({ top: 0, behavior: "smooth" }); }}>Releases</a>
+          <a className={showReleasesPage ? "nav-active" : ""} href="#releases" onClick={(event) => { event.preventDefault(); setShowToolsPage(false); setShowStudioPage(false); setShowReleasesPage(true); setSelectedArtist(null); window.scrollTo({ top: 0, behavior: "smooth" }); }}>Releases</a>
 
         </nav>
 
