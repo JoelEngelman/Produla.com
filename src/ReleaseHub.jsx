@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "./lib/supabase";
 import "./ReleaseHub.css";
 
@@ -61,6 +61,7 @@ export default function ReleaseHub({ userId, artistId, compact = false, onBack, 
   const [coverPreview, setCoverPreview] = useState("");
   const [tracks, setTracks] = useState([]);
   const [filter, setFilter] = useState("all");
+  const objectUrls = useRef(new Set());
 
   async function loadReleases() {
     setLoading(true);
@@ -98,13 +99,19 @@ export default function ReleaseHub({ userId, artistId, compact = false, onBack, 
   useEffect(() => { loadReleases(); }, [artistId, userId]);
 
   useEffect(() => () => {
-    if (coverPreview) URL.revokeObjectURL(coverPreview);
-    tracks.forEach((track) => { if (track.preview) URL.revokeObjectURL(track.preview); });
-  }, [coverPreview, tracks]);
+    objectUrls.current.forEach((url) => URL.revokeObjectURL(url));
+    objectUrls.current.clear();
+  }, []);
 
   const visibleReleases = useMemo(() => releases.filter((release) => filter === "all" || release.release_type === filter), [releases, filter]);
   const ownRelease = (release) => Boolean(userId && release.artist_id === userId);
   const today = new Date().toISOString().slice(0, 10);
+
+  function closeComposer() {
+    if (saving) return;
+    objectUrls.current.forEach((url) => URL.revokeObjectURL(url)); objectUrls.current.clear();
+    setCoverFile(null); setCoverPreview(""); setTracks([]); setComposerOpen(false);
+  }
 
   function startComposer() {
     if (!userId) { onLogin?.(); return; }
@@ -122,9 +129,10 @@ export default function ReleaseHub({ userId, artistId, compact = false, onBack, 
     if (!AUDIO_TYPES.includes(file.type)) { onNotice?.("Choose an MP3, WAV, M4A, AAC, OGG, FLAC or WebM file."); return; }
     if (file.size > 100 * 1024 * 1024) { onNotice?.("Each audio file must be 100 MB or smaller."); return; }
     const preview = URL.createObjectURL(file);
+    objectUrls.current.add(preview);
     setTracks((current) => current.map((track) => {
       if (track.id !== id) return track;
-      if (track.preview) URL.revokeObjectURL(track.preview);
+      if (track.preview) { URL.revokeObjectURL(track.preview); objectUrls.current.delete(track.preview); }
       return { ...track, file, preview, title: track.title || file.name.replace(/\.[^.]+$/, "") };
     }));
   }
@@ -192,6 +200,7 @@ export default function ReleaseHub({ userId, artistId, compact = false, onBack, 
       const { error: tracksError } = await supabase.from("release_tracks").insert(trackRows);
       if (tracksError) throw tracksError;
       setComposerOpen(false);
+      objectUrls.current.forEach((url) => URL.revokeObjectURL(url)); objectUrls.current.clear();
       setCoverFile(null); setCoverPreview(""); setTracks([]);
       await loadReleases();
       onNotice?.(publish ? (releaseDate && releaseDate > today ? "Release scheduled!" : "Your release is live!") : "Release saved as a draft.");
@@ -320,11 +329,11 @@ export default function ReleaseHub({ userId, artistId, compact = false, onBack, 
       )}
 
       {composerOpen && (
-        <div className="release-composer-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !saving) setComposerOpen(false); }}>
+        <div className="release-composer-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !saving) closeComposer(); }}>
           <form className="release-composer" onSubmit={(event) => createRelease(event, true)}>
             <div className="release-composer-header">
               <div><span className="eyebrow">RELEASE SETUP</span><h2>Make it official.</h2><p>Build your release, then save it or put it out into the world.</p></div>
-              <button type="button" onClick={() => setComposerOpen(false)} disabled={saving} aria-label="Close">×</button>
+              <button type="button" onClick={closeComposer} disabled={saving} aria-label="Close">×</button>
             </div>
             <div className="release-composer-layout">
               <div className="release-cover-column">
@@ -333,8 +342,9 @@ export default function ReleaseHub({ userId, artistId, compact = false, onBack, 
                   <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => {
                     const file = event.target.files?.[0] || null;
                     if (!file) return;
-                    if (coverPreview) URL.revokeObjectURL(coverPreview);
-                    setCoverFile(file); setCoverPreview(URL.createObjectURL(file));
+                    if (coverPreview) { URL.revokeObjectURL(coverPreview); objectUrls.current.delete(coverPreview); }
+                    const preview = URL.createObjectURL(file); objectUrls.current.add(preview);
+                    setCoverFile(file); setCoverPreview(preview);
                   }} />
                 </label>
                 <span className="release-cover-caption">SQUARE ARTWORK LOOKS BEST</span>
@@ -363,7 +373,7 @@ export default function ReleaseHub({ userId, artistId, compact = false, onBack, 
                   <div className="release-track-edit-actions">
                     <button type="button" aria-label="Move track up" disabled={index === 0} onClick={() => moveTrack(index, -1)}>↑</button>
                     <button type="button" aria-label="Move track down" disabled={index === tracks.length - 1} onClick={() => moveTrack(index, 1)}>↓</button>
-                    <button type="button" aria-label="Remove track" onClick={() => { if (track.preview) URL.revokeObjectURL(track.preview); setTracks((current) => current.filter((item) => item.id !== track.id)); }}>×</button>
+                    <button type="button" aria-label="Remove track" onClick={() => { if (track.preview) { URL.revokeObjectURL(track.preview); objectUrls.current.delete(track.preview); } setTracks((current) => current.filter((item) => item.id !== track.id)); }}>×</button>
                   </div>
                 </div>
               ))}
