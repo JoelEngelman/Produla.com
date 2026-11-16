@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { supabase } from "./lib/supabase";
 import Studio from "./Studio";
+import ReleaseHub from "./ReleaseHub";
 
 import "./App.css";
 
@@ -118,6 +119,7 @@ function App() {
   const [notice, setNotice] = useState("");
   const [showToolsPage, setShowToolsPage] = useState(false);
   const [showStudioPage, setShowStudioPage] = useState(() => new URLSearchParams(window.location.search).get("studio") === "1");
+  const [showReleasesPage, setShowReleasesPage] = useState(false);
 
   const [publicProfiles, setPublicProfiles] = useState([]);
   const [songRequests, setSongRequests] = useState([]);
@@ -991,7 +993,7 @@ function App() {
 
       <header id="produla-navbar" className="navbar">
 
-        <a className="wordmark" href="#home" aria-label="Produla home" onClick={() => setShowToolsPage(false)}>
+        <a className="wordmark" href="#home" aria-label="Produla home" onClick={() => { setShowToolsPage(false); setShowStudioPage(false); setShowReleasesPage(false); }}>
 
           produla<span>.</span>
 
@@ -1001,14 +1003,15 @@ function App() {
 
         <nav className="nav-links" aria-label="Main navigation">
 
-          <a className={!showToolsPage ? "nav-active" : ""} href="#discover" onClick={() => setShowToolsPage(false)}>Discover</a>
+          <a className={!showToolsPage && !showStudioPage && !showReleasesPage ? "nav-active" : ""} href="#discover" onClick={() => { setShowToolsPage(false); setShowStudioPage(false); setShowReleasesPage(false); }}>Discover</a>
 
-          <a href="#producers" onClick={() => setShowToolsPage(false)}>Producers</a>
+          <a href="#producers" onClick={() => { setShowToolsPage(false); setShowStudioPage(false); setShowReleasesPage(false); }}>Producers</a>
 
-          <a href="#songs" onClick={() => setShowToolsPage(false)}>Songs</a>
-          <a href="#samples" onClick={() => setShowToolsPage(false)}>Samples</a>
-          <a className={showToolsPage ? "nav-active" : ""} href="#tools" onClick={(event) => { event.preventDefault(); setShowStudioPage(false); setShowToolsPage(true); window.scrollTo({ top: 0, behavior: "smooth" }); }}>Produla Tools</a>
-          <a className={showStudioPage ? "nav-active" : ""} href="#studio" onClick={(event) => { event.preventDefault(); setShowToolsPage(false); setShowStudioPage(true); window.scrollTo({ top: 0, behavior: "smooth" }); }}>Studio</a>
+          <a href="#songs" onClick={() => { setShowToolsPage(false); setShowStudioPage(false); setShowReleasesPage(false); }}>Songs</a>
+          <a href="#samples" onClick={() => { setShowToolsPage(false); setShowStudioPage(false); setShowReleasesPage(false); }}>Samples</a>
+          <a className={showToolsPage ? "nav-active" : ""} href="#tools" onClick={(event) => { event.preventDefault(); setShowStudioPage(false); setShowReleasesPage(false); setShowToolsPage(true); window.scrollTo({ top: 0, behavior: "smooth" }); }}>Produla Tools</a>
+          <a className={showStudioPage ? "nav-active" : ""} href="#studio" onClick={(event) => { event.preventDefault(); setShowToolsPage(false); setShowReleasesPage(false); setShowStudioPage(true); window.scrollTo({ top: 0, behavior: "smooth" }); }}>Studio</a>
+          <a className={showReleasesPage ? "nav-active" : ""} href="#releases" onClick={(event) => { event.preventDefault(); setShowToolsPage(false); setShowStudioPage(false); setShowReleasesPage(true); window.scrollTo({ top: 0, behavior: "smooth" }); }}>Releases</a>
 
         </nav>
 
@@ -1237,6 +1240,13 @@ function App() {
               <div className="tools-page-note"><span>ONE CREATIVE COMMUNITY.</span><span>TWO WAYS TO MAKE MORE.</span></div>
             </div>
           </section>
+        ) : showReleasesPage ? (
+          <ReleaseHub
+            userId={session?.user?.id}
+            onBack={() => setShowReleasesPage(false)}
+            onLogin={() => { setAuthMode("login"); setAuthError("Log in to create a release."); }}
+            onNotice={showNotice}
+          />
         ) : (
           <>
 
@@ -1900,6 +1910,7 @@ function App() {
                 {selectedArtist.stats_updated_at && <p className="artist-public-stats-updated">Last updated {new Date(selectedArtist.stats_updated_at).toLocaleDateString()}</p>}
               </div>
             )}
+            <ReleaseHub artistId={selectedArtist.id} userId={session?.user?.id} compact onLogin={() => { setAuthMode("login"); setAuthError("Log in to create a release."); }} onNotice={showNotice} />
             <div className="artist-posts-section">
               <div className="artist-posts-heading">
                 <div>
