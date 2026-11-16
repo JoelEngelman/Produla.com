@@ -2536,7 +2536,48 @@ function App() {
 
             </form>
 
-
+            {authMode === "signup" && (
+              <div className="guest-signup-option">
+                <p className="guest-signup-note">Just exploring? Start without an email address.</p>
+                <button
+                  type="button"
+                  className="auth-switch"
+                  disabled={authLoading}
+                  onClick={async () => {
+                    if (!authName.trim()) {
+                      setAuthError("Add your name above to continue without email.");
+                      return;
+                    }
+                    setAuthLoading(true);
+                    setAuthError("");
+                    try {
+                      const { data, error } = await supabase.auth.signInAnonymously({
+                        options: { data: { name: authName.trim() } },
+                      });
+                      if (error) throw error;
+                      if (!data.session) throw new Error("No guest session was returned. Please try again.");
+                      setAuthMode("");
+                      setAuthEmail("");
+                      setAuthPassword("");
+                      setAuthName("");
+                      showNotice("You're in! You're using a guest account.");
+                    } catch (error) {
+                      const message = error.message || "Couldn't create a guest account.";
+                      setAuthError(
+                        /anonymous|disabled|not enabled/i.test(message)
+                          ? "Email-free sign-up isn't enabled yet. Enable Anonymous Sign-Ins in Supabase under Authentication → Sign In / Providers."
+                          : message
+                      );
+                    } finally {
+                      setAuthLoading(false);
+                    }
+                  }}
+                >
+                  Continue without email
+                </button>
+                <p className="guest-signup-warning">Guest accounts are tied to this browser. If you sign out or clear browser data, you may lose access to the account.</p>
+              </div>
+            )}
 
             {authMode !== "profile" && authMode !== "request" && authMode !== "sample" && authMode !== "song" && (
 
