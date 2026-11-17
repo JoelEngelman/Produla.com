@@ -1793,9 +1793,9 @@ function App() {
                 }}>Upload a song</button>
               </div>
             )}
-        </section>
+        </section>}
 
-        <section className="samples-section photo-wash-section" id="samples" style={{ "--produla-bg-image": `url("${import.meta.env.BASE_URL}Dreamy%20Peach%20Glass%20Waves.png")` }}>
+        {activePage === "music" && <section className="samples-section photo-wash-section" id="samples" style={{ "--produla-bg-image": `url("${import.meta.env.BASE_URL}Dreamy%20Peach%20Glass%20Waves.png")` }}>
           <div className="section-heading samples-heading">
             <div>
               <div className="eyebrow">THE PRODULA SAMPLE LIBRARY</div>
