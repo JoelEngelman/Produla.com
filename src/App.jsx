@@ -120,6 +120,7 @@ function App() {
   const [showToolsPage, setShowToolsPage] = useState(false);
   const [showStudioPage, setShowStudioPage] = useState(() => new URLSearchParams(window.location.search).get("studio") === "1");
   const [showReleasesPage, setShowReleasesPage] = useState(false);
+  const [activePage, setActivePage] = useState("discover");
 
   const [publicProfiles, setPublicProfiles] = useState([]);
   const [songRequests, setSongRequests] = useState([]);
@@ -1002,17 +1003,10 @@ function App() {
 
 
         <nav className="nav-links" aria-label="Main navigation">
-
-          <a className={!showToolsPage && !showStudioPage && !showReleasesPage ? "nav-active" : ""} href="#discover" onClick={() => { setShowToolsPage(false); setShowStudioPage(false); setShowReleasesPage(false); }}>Discover</a>
-
-          <a href="#producers" onClick={() => { setShowToolsPage(false); setShowStudioPage(false); setShowReleasesPage(false); }}>Producers</a>
-
-          <a href="#songs" onClick={() => { setShowToolsPage(false); setShowStudioPage(false); setShowReleasesPage(false); }}>Songs</a>
-          <a href="#samples" onClick={() => { setShowToolsPage(false); setShowStudioPage(false); setShowReleasesPage(false); }}>Samples</a>
-          <a className={showToolsPage ? "nav-active" : ""} href="#tools" onClick={(event) => { event.preventDefault(); setShowStudioPage(false); setShowReleasesPage(false); setShowToolsPage(true); window.scrollTo({ top: 0, behavior: "smooth" }); }}>Produla Tools</a>
-          <a className={showStudioPage ? "nav-active" : ""} href="#studio" onClick={(event) => { event.preventDefault(); setShowToolsPage(false); setShowReleasesPage(false); setShowStudioPage(true); window.scrollTo({ top: 0, behavior: "smooth" }); }}>Studio</a>
-          <a className={showReleasesPage ? "nav-active" : ""} href="#releases" onClick={(event) => { event.preventDefault(); setShowToolsPage(false); setShowStudioPage(false); setShowReleasesPage(true); setSelectedArtist(null); window.scrollTo({ top: 0, behavior: "smooth" }); }}>Releases</a>
-
+          <button type="button" className={!showToolsPage && !showStudioPage && !showReleasesPage && activePage === "discover" ? "nav-active" : ""} onClick={() => { setShowToolsPage(false); setShowStudioPage(false); setShowReleasesPage(false); setActivePage("discover"); window.scrollTo({ top: 0, behavior: "smooth" }); }}>Discover</button>
+          <button type="button" className={!showToolsPage && !showStudioPage && !showReleasesPage && activePage === "requests" ? "nav-active" : ""} onClick={() => { setShowToolsPage(false); setShowStudioPage(false); setShowReleasesPage(false); setActivePage("requests"); window.scrollTo({ top: 0, behavior: "smooth" }); }}>Song requests</button>
+          <button type="button" className={!showToolsPage && !showStudioPage && !showReleasesPage && activePage === "music" ? "nav-active" : ""} onClick={() => { setShowToolsPage(false); setShowStudioPage(false); setShowReleasesPage(false); setActivePage("music"); window.scrollTo({ top: 0, behavior: "smooth" }); }}>Music</button>
+          <button type="button" className={showReleasesPage ? "nav-active" : ""} onClick={() => { setShowToolsPage(false); setShowStudioPage(false); setShowReleasesPage(true); setSelectedArtist(null); window.scrollTo({ top: 0, behavior: "smooth" }); }}>Releases</button>
         </nav>
 
 
@@ -1251,7 +1245,7 @@ function App() {
           <>
 
 
-        <section className="hero">
+        {activePage === "discover" && <section className="hero">
 
           <div className="hero-copy">
 
@@ -1341,28 +1335,28 @@ function App() {
 
           </div>
 
-        </section>
+        </section>}
 
 
 
-        <section className="ticker" aria-label="About Produla">
+        {activePage === "discover" && <section className="ticker" aria-label="About Produla">
 
           <a className="ticker-brand" href="#home">produla.</a>
 
           <span className="ticker-tagline">Good music is better together.</span>
 
-        </section>
+        </section>}
 
 
 
         <div className="collaboration-wash" style={{ "--produla-bg-image": `url("${import.meta.env.BASE_URL}Dreamy%20Peach%20Glass%20Waves.png")` }}>
-          <section className="discover-section photo-wash-section" id="discover">
+          {activePage === "requests" && <section className="discover-section photo-wash-section requests-page" id="discover">
 
-          <div className="section-heading">
+          <div className="section-heading request-page-heading">
 
             <div>
 
-              <div className="eyebrow">Find your next collaborator</div>
+              <div className="eyebrow">THE COLLABORATION BOARD</div>
 
               <h2>
 
@@ -1370,10 +1364,13 @@ function App() {
 
               </h2>
 
-              <p>Artists with ideas, songs worth sharing.</p>
+              <p>Post an idea, find someone to make it with, and start your next track.</p>
 
             </div>
-
+            <button className="button button-dark request-page-cta" type="button" onClick={() => {
+              if (!session?.user) { setAuthError("Log in to post a song request."); setAuthMode("login"); return; }
+              setRequestTitle(""); setRequestDescription(""); setRequestGenre(""); setRequestLookingFor("Producer"); setAuthError(""); setAuthMode("request");
+            }}>Post a request <span>↗</span></button>
           </div>
 
 
@@ -1461,11 +1458,11 @@ function App() {
               )}
             </div>
           )}
-        </section>
+        </section>}
 
 
 
-        <section className="producer-section photo-wash-section" id="producers">
+        {activePage === "discover" && <section className="producer-section photo-wash-section" id="producers">
 
           <div className="section-heading">
 
@@ -1704,13 +1701,13 @@ function App() {
             </>
           )}
 
-        </section>
+        </section>}
 
 
 
         </div>
 
-        <section className="song-library-section" id="songs">
+        {activePage === "music" && <section className="song-library-section" id="songs">
           <div className="section-heading song-library-heading">
             <div>
               <div className="eyebrow">RECENTLY UPLOADED · THE PRODULA SONG LIBRARY</div>
@@ -1844,8 +1841,7 @@ function App() {
               </div>
             ) : <div className="empty-state"><div className="empty-state-icon">♫</div><h3>No samples found just yet.</h3><p>Try another search, or be the first to upload a sound.</p></div>}
           <div className="sample-payments-note"><span>PAYMENTS COMING SOON</span><p>Sample prices are displayed for now. Checkout and creator payouts will be enabled in a future update.</p></div>
-        </section>
-
+        </section>}
           </>
         )}
       </main>
@@ -2137,13 +2133,17 @@ function App() {
 
                   <div className="profile-picture-editor">
                     <img src={profileAvatarPreview || profileAvatarUrl || `${import.meta.env.BASE_URL}produla-avatar.svg`} alt="Profile picture preview" className="profile-picture-preview" />
-                    <label className="profile-picture-label">Profile picture (JPG, PNG or WebP, max 5 MB)
-                      <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => {
+                    <div className="profile-picture-label">
+                      <span>PROFILE PICTURE</span>
+                      <span className="profile-picture-help">JPG, PNG or WebP · up to 5 MB</span>
+                      <label className="profile-upload-button" htmlFor="profile-avatar-upload">{profileAvatarFile ? "Change image" : "Choose image"}</label>
+                      <input id="profile-avatar-upload" className="visually-hidden-file" type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => {
                         const file = event.target.files?.[0] || null;
                         setProfileAvatarFile(file);
                         setProfileAvatarPreview(file ? URL.createObjectURL(file) : "");
                       }} />
-                    </label>
+                      {profileAvatarFile && <span className="profile-selected-file">{profileAvatarFile.name}</span>}
+                    </div>
                   </div>
 
                   <input
@@ -2196,25 +2196,14 @@ function App() {
 
 
 
-                  <select
-
-                    value={profileType}
-
-                    onChange={(event) =>
-
-                      setProfileType(event.target.value)
-
-                    }
-
-                  >
-
-                    <option value="singer">I'm a singer</option>
-
-                    <option value="producer">I'm a producer</option>
-
-                    <option value="both">I'm both</option>
-
-                  </select>
+                  <div className="profile-role-picker" role="group" aria-label="Choose your artist type">
+                    <span className="profile-field-caption">I AM A</span>
+                    <div className="profile-role-options">
+                      {[["singer","Singer"],["producer","Producer"],["both","Both"]].map(([value,label]) => (
+                        <button key={value} type="button" className={profileType === value ? "profile-role-option is-selected" : "profile-role-option"} aria-pressed={profileType === value} onClick={() => setProfileType(value)}>{label}</button>
+                      ))}
+                    </div>
+                  </div>
 
 
 
@@ -2418,11 +2407,14 @@ function App() {
                     minLength={10} maxLength={1200} rows={5} required />
                   <input type="text" placeholder="Genre (e.g. house, R&B, pop)" value={requestGenre}
                     onChange={(event) => setRequestGenre(event.target.value)} maxLength={60} />
-                  <select value={requestLookingFor} onChange={(event) => setRequestLookingFor(event.target.value)}>
-                    <option value="Producer">Looking for a producer</option>
-                    <option value="Singer">Looking for a singer</option>
-                    <option value="Either">Open to either</option>
-                  </select>
+                  <div className="profile-role-picker request-role-picker" role="group" aria-label="Who are you looking for?">
+                    <span className="profile-field-caption">LOOKING FOR</span>
+                    <div className="profile-role-options">
+                      {[["Producer","A producer"],["Singer","A singer"],["Either","Either"]].map(([value,label]) => (
+                        <button key={value} type="button" className={requestLookingFor === value ? "profile-role-option is-selected" : "profile-role-option"} aria-pressed={requestLookingFor === value} onClick={() => setRequestLookingFor(value)}>{label}</button>
+                      ))}
+                    </div>
+                  </div>
                 </>
               )}
 
