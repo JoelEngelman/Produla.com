@@ -994,7 +994,7 @@ function App() {
 
       <header id="produla-navbar" className="navbar">
 
-        <a className="wordmark" href="#home" aria-label="Produla home" onClick={() => { setShowToolsPage(false); setShowStudioPage(false); setShowReleasesPage(false); }}>
+        <a className="wordmark" href="#home" aria-label="Produla home" onClick={() => { setShowToolsPage(false); setShowStudioPage(false); setShowReleasesPage(false); setActivePage("discover"); }}>
 
           produla<span>.</span>
 
@@ -1291,7 +1291,7 @@ function App() {
 
               </a>
 
-              <a className="button button-light" href="#discover">
+              <a className="button button-light" href="#producers">
 
                 Explore the community
 
@@ -2050,7 +2050,7 @@ function App() {
 
       <footer className="footer">
 
-        <a className="wordmark" href="#home">
+        <a className="wordmark" href="#home" onClick={() => { setActivePage("discover"); setShowToolsPage(false); setShowStudioPage(false); setShowReleasesPage(false); }}>
 
           produla<span>.</span>
 
@@ -2058,6 +2058,10 @@ function App() {
 
         <p>Good music is better together.</p>
 
+        <div className="footer-links">
+          <button type="button" onClick={() => { setShowToolsPage(true); setShowStudioPage(false); setShowReleasesPage(false); window.scrollTo({ top: 0, behavior: "smooth" }); }}>Produla Tools</button>
+          <button type="button" onClick={() => { setShowToolsPage(false); setShowStudioPage(true); setShowReleasesPage(false); window.scrollTo({ top: 0, behavior: "smooth" }); }}>Studio</button>
+        </div>
         <span>MADE FOR WHAT'S NEXT. © 2026 PRODULA</span>
 
       </footer>
