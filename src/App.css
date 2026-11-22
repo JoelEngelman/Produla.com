@@ -1879,3 +1879,33 @@ a:not(.navbar a) { transition: color .25s ease, opacity .25s ease; }
   min-height: 0;
   padding: 0;
 }
+
+
+/* Keep the account dropdown out of the navbar's flex layout. */
+#produla-navbar {
+  position: relative;
+  flex-wrap: nowrap;
+  overflow: visible;
+}
+
+#produla-navbar .nav-links,
+#produla-navbar .nav-actions {
+  flex: 0 0 auto;
+  min-width: 0;
+}
+
+#produla-navbar .account-actions {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+#produla-navbar .profile-menu {
+  position: absolute !important;
+  display: block;
+  top: calc(100% + 12px);
+  right: 0;
+  z-index: 2000;
+  width: 260px;
+  max-width: min(260px, calc(100vw - 24px));
+  flex: none;
+}
