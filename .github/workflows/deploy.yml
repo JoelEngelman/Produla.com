@@ -1,4 +1,3 @@
-
 name: Deploy Produla to GitHub Pages
 
 on:
@@ -30,11 +29,10 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 24
-          cache: npm
+          node-version-file: .node-version
 
       - name: Install dependencies
-        run: npm install
+        run: npm install --no-audit --no-fund
 
       - name: Build website
         run: npm run build

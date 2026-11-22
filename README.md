@@ -1,16 +1,40 @@
-# React + Vite
+# Produla
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Produla is a React 19 + Vite application with Supabase-backed artist profiles, releases, audio, and marketplace features, plus an Electron desktop build.
 
-Currently, two official plugins are available:
+## Cloudflare Pages deployment
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Connect this repository to **Cloudflare Pages** using Git integration and configure:
 
-## React Compiler
+| Setting | Value |
+| --- | --- |
+| Framework preset | React (Vite) |
+| Production branch | `main` |
+| Root directory | `/` |
+| Build command | `npm run build` |
+| Build output directory | `dist` |
+| Node.js | `22` (selected by `.node-version`) |
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Do not set `VITE_BASE_PATH` for Cloudflare Pages. Cloudflare serves the site from the domain root, and `vite.config.js` explicitly uses `/` when the `CF_PAGES` build variable is present.
 
-## Expanding the ESLint configuration
+The `public/_redirects` file enables the single-page-app fallback so direct visits and refreshes on client-side URLs serve `index.html`.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Cloudflare Pages installs dependencies from `package.json`. The previous lockfile was generated for a different app (it listed `better-auth`, omitted this project's Supabase and Electron dependencies, and did not match `package.json`), so it has been removed rather than allowing clean Pages builds to install from a stale dependency graph.
+
+## GitHub Pages
+
+The GitHub Pages workflow builds the same app with `VITE_BASE_PATH=/Produla.com/`, because GitHub Pages hosts this repository under a project subpath. Keep this setting separate from Cloudflare Pages.
+
+## Local development
+
+```sh
+npm install
+npm run dev
+```
+
+## Windows desktop build
+
+```sh
+npm install
+npm run desktop
+```

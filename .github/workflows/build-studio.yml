@@ -10,7 +10,7 @@ on:
       - "src/App.jsx"
       - "electron/**"
       - "package.json"
-      - "package-lock.json"
+      - ".node-version"
       - ".github/workflows/build-studio.yml"
   workflow_dispatch:
 
@@ -24,10 +24,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 24
-          cache: npm
+          node-version-file: .node-version
       - name: Install dependencies
-        run: npm install
+        run: npm install --no-audit --no-fund
       - name: Build Windows desktop app
         run: npm run desktop
         env:
