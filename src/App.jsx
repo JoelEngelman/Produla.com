@@ -2197,8 +2197,6 @@ function App() {
                     Continue to Produla <span aria-hidden="true">↗</span>
                   </button>
                 )}
-                {verificationMessage && verificationStatus === "sent" && <p className="email-verification-feedback" role="status">{verificationMessage}</p>}
-                {verificationMessage && verificationStatus === "expired" && <p className="email-verification-feedback" role="status">{verificationMessage}</p>}
               </div>
             ) : (
             <form onSubmit={handleAuthSubmit}>
