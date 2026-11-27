@@ -369,7 +369,28 @@ function App() {
 
     let active = true;
 
+    function inspectEmailConfirmation(authSession) {
+      const query = new URLSearchParams(window.location.search);
+      const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+      const errorCode = query.get("error_code") || hash.get("error_code");
+      const errorText = query.get("error_description") || hash.get("error_description") || "";
+      if (errorCode || /expired|invalid.*link|link.*invalid/i.test(errorText)) {
+        setVerificationEmail("");
+        setVerificationStatus("expired");
+        setVerificationMessage("That confirmation link has expired or is no longer valid. Enter your email below and we'll send you a fresh one.");
+        setAuthMode("verify");
+        return;
+      }
+      if (query.get("email_confirmed") === "1" && authSession?.user?.email_confirmed_at) {
+        setVerificationEmail(authSession.user.email || "");
+        setVerificationStatus("success");
+        setVerificationMessage("Your email is confirmed. Your Produla account is ready.");
+        setAuthMode("verify");
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    }
 
+    inspectEmailConfirmation(null);
 
     function toAppSession(authSession) {
 
@@ -410,7 +431,7 @@ function App() {
       if (error) console.error("Could not restore session:", error.message);
 
       setSession(toAppSession(data?.session));
-
+      inspectEmailConfirmation(data?.session);
       setSessionPending(false);
 
     });
@@ -419,9 +440,10 @@ function App() {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
 
-      (_event, authSession) => {
+      (event, authSession) => {
 
         setSession(toAppSession(authSession));
+        if (event === "SIGNED_IN" || event === "INITIAL_SESSION") inspectEmailConfirmation(authSession);
 
         setSessionPending(false);
 
@@ -487,6 +509,9 @@ function App() {
   const [authError, setAuthError] = useState("");
 
   const [authLoading, setAuthLoading] = useState(false);
+  const [verificationEmail, setVerificationEmail] = useState("");
+  const [verificationStatus, setVerificationStatus] = useState("sent");
+  const [verificationMessage, setVerificationMessage] = useState("");
 
 
 
@@ -615,6 +640,31 @@ function App() {
   }
 
 
+
+  async function resendVerificationEmail() {
+    const email = verificationEmail.trim();
+    if (!email) {
+      setVerificationMessage("Enter the email address you used to create your account.");
+      setVerificationStatus("expired");
+      return;
+    }
+    setAuthLoading(true);
+    setVerificationMessage("");
+    try {
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email,
+        options: { emailRedirectTo: `${window.location.origin}${import.meta.env.BASE_URL}?email_confirmed=1` },
+      });
+      if (error) throw error;
+      setVerificationStatus("sent");
+      setVerificationMessage("A fresh confirmation email is on its way. Check your inbox and spam folder.");
+    } catch (error) {
+      setVerificationMessage(error.message || "We couldn't resend the email. Please wait a moment and try again.");
+    } finally {
+      setAuthLoading(false);
+    }
+  }
 
   async function handleAuthSubmit(event) {
 
@@ -824,7 +874,10 @@ function App() {
 
               password: authPassword,
 
-              options: { data: { name: authName.trim() }, emailRedirectTo: window.location.origin },
+              options: {
+                data: { name: authName.trim() },
+                emailRedirectTo: `${window.location.origin}${import.meta.env.BASE_URL}?email_confirmed=1`,
+              },
 
             })
 
@@ -846,29 +899,20 @@ function App() {
 
 
 
+        if (wasSignup && !result.data.session) {
+          setVerificationEmail(authEmail.trim());
+          setVerificationStatus("sent");
+          setVerificationMessage("We've sent a confirmation link to your inbox. Open it on this device to finish setting up your account.");
+          setAuthPassword("");
+          setAuthMode("verify");
+          return;
+        }
+
         setAuthMode("");
-
         setAuthEmail("");
-
         setAuthPassword("");
-
         setAuthName("");
-
-
-
-        showNotice(
-
-          wasSignup
-
-            ? result.data.session
-
-              ? "Account created successfully!"
-
-              : "Check your email to confirm your account."
-
-            : "You're logged in!"
-
-        );
+        showNotice(wasSignup ? "Account created successfully!" : "You're logged in!");
 
       }
 
@@ -2113,22 +2157,50 @@ function App() {
 
 
             <h2>
-              {authMode === "song" ? "Share your music." : authMode === "sample" ? "Share a sound." : authMode === "request" ? "Post a song request." :
-                authMode === "profile" ? "Your profile." :
-                authMode === "login" ? "Welcome back." : "Make something real."}
+              {authMode === "verify" ? (verificationStatus === "success" ? "You're all set." : verificationStatus === "expired" ? "Let's try that again." : "Check your inbox.") :
+                authMode === "song" ? "Share your music." : authMode === "sample" ? "Share a sound." : authMode === "request" ? "Post a song request." :
+                authMode === "profile" ? "Your profile." : authMode === "login" ? "Welcome back." : "Make something real."}
             </h2>
 
 
 
             <p>
-              {authMode === "song" ? "Upload an original track for people to discover and listen to." : authMode === "sample" ? "Add a sound to the Produla sample library." : authMode === "request" ? "Give producers an idea of the song you want to make." :
-                authMode === "profile" ? "Make your Produla profile yours." :
-                authMode === "login" ? "Log in to continue making music together." :
-                "Create your Produla account to get started."}
+              {authMode === "verify" ? (verificationStatus === "success" ? "Thanks for confirming your email. You can now get back to finding your next collaboration." : "A quick inbox check is all that stands between you and the Produla community.") :
+                authMode === "song" ? "Upload an original track for people to discover and listen to." : authMode === "sample" ? "Add a sound to the Produla sample library." : authMode === "request" ? "Give producers an idea of the song you want to make." :
+                authMode === "profile" ? "Make your Produla profile yours." : authMode === "login" ? "Log in to continue making music together." : "Create your Produla account to get started."}
             </p>
 
 
 
+            {authMode === "verify" ? (
+              <div className="email-verification-panel">
+                <div className={`email-verification-icon ${verificationStatus}`} aria-hidden="true">
+                  {verificationStatus === "success" ? "✓" : verificationStatus === "expired" ? "↻" : "✉"}
+                </div>
+                <div className="email-verification-copy">
+                  <span className="email-verification-kicker">{verificationStatus === "success" ? "EMAIL CONFIRMED" : verificationStatus === "expired" ? "LINK NEEDS REFRESHING" : "ONE LAST STEP"}</span>
+                  <h3>{verificationStatus === "success" ? "Welcome to Produla." : verificationStatus === "expired" ? "Your link needs a refresh." : "Your music community is waiting."}</h3>
+                  <p>{verificationMessage}</p>
+                </div>
+                {verificationStatus !== "success" && (
+                  <>
+                    <label className="email-verification-label" htmlFor="verification-email">EMAIL ADDRESS</label>
+                    <input id="verification-email" type="email" value={verificationEmail} onChange={(event) => setVerificationEmail(event.target.value)} placeholder="you@example.com" autoComplete="email" required />
+                    <button className="button button-dark auth-submit email-verification-resend" type="button" onClick={resendVerificationEmail} disabled={authLoading}>
+                      {authLoading ? "Sending..." : "Resend confirmation email"} <span aria-hidden="true">↗</span>
+                    </button>
+                    <p className="email-verification-footnote">Check your spam or promotions folder too. The link can only be used once.</p>
+                  </>
+                )}
+                {verificationStatus === "success" && (
+                  <button className="button button-dark auth-submit email-verification-resend" type="button" onClick={() => { setAuthMode(""); setVerificationStatus("sent"); setVerificationMessage(""); }}>
+                    Continue to Produla <span aria-hidden="true">↗</span>
+                  </button>
+                )}
+                {verificationMessage && verificationStatus === "sent" && <p className="email-verification-feedback" role="status">{verificationMessage}</p>}
+                {verificationMessage && verificationStatus === "expired" && <p className="email-verification-feedback" role="status">{verificationMessage}</p>}
+              </div>
+            ) : (
             <form onSubmit={handleAuthSubmit}>
 
               {authMode === "profile" && (
@@ -2531,6 +2603,7 @@ function App() {
               </button>
 
             </form>
+            )}
 
             {authMode === "signup" && (
               <div className="guest-signup-option">
